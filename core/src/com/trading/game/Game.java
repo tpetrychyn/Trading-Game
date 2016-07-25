@@ -9,14 +9,12 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader.Parameters;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
 import com.trading.entities.Player;
 
@@ -47,7 +45,7 @@ public class Game extends ApplicationAdapter implements Screen {
 	
 		
 		world = new World(new Vector2(0, 0), true);
-		player = new Player(world);
+		player = new Player(world, (TiledMapTileLayer) map.getLayers().get(1));
 		player.setPosition(new Vector2(10,10));
         
         camera = new OrthographicCamera(Gdx.graphics.getWidth(),Gdx.graphics.

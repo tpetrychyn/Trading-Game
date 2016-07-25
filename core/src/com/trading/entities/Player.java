@@ -8,6 +8,9 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.World;
@@ -17,6 +20,7 @@ public class Player extends Sprite implements InputProcessor {
 	Texture playerImage;
 	Sprite playerSprite;
     Body player;
+    TiledMapTileLayer collisionLayer;
     
     float playerSpeed = 200f;
     public boolean isMoving = false;
@@ -108,15 +112,16 @@ public class Player extends Sprite implements InputProcessor {
     public void setPosition(Vector2 transform) {
     	setX(transform.x);
     	setY(transform.y);
-    	//player.setTransform(transform, 0);
     }
     
-	public Player(World world) {
+	public Player(World world, TiledMapTileLayer colisionLayer) {
     	playerImage = new Texture("badlogic.jpg");
 		playerSprite = new Sprite(playerImage);
 		// Center the sprite in the top/middle of the screen
         playerSprite.setPosition(Gdx.graphics.getWidth() / 2 - playerSprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
+        
+        this.collisionLayer = colisionLayer;
         create();
 	}
 	
@@ -167,7 +172,20 @@ public class Player extends Sprite implements InputProcessor {
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
+        
+        if (isCellBlocked(getWorldPosition().x, getWorldPosition().y)) {
+        	setX(oldPos.x);
+        	setY(oldPos.y);
+        }
+       
 	}
+	
+	private boolean isCellBlocked(float x, float y) {
+		Cell cell = collisionLayer.getCell((int) (x), (int) (y));
+		return cell != null && cell.getTile() != null && cell.getTile().getProperties().containsKey("blocked");
+	}
+
+
 	
 	public Body getBody() {
 		return player;
