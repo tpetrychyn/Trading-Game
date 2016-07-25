@@ -2,46 +2,60 @@ package com.trading.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader.Parameters;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
+import com.trading.entities.Player;
 
-public class Game extends ApplicationAdapter {
+public class Game extends ApplicationAdapter implements Screen {
 	SpriteBatch batch;
+	SpriteBatch debugBatch;
 	
+	BitmapFont font;
 	TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
 	World world;
     Player player;
-    float stateTime;
     
     private OrthographicCamera camera;
+    
+    private int[] background = new int[] {0}, foreground = new int[] {1};
 	
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
+		debugBatch = new SpriteBatch();
+		font = new BitmapFont();
 		
-		map = new TmxMapLoader().load("Maps/test.tmx");
+		Parameters params = new Parameters();
+		map = new TmxMapLoader().load("Maps/map.tmx", params);
+	
 		mapRenderer = new IsometricTiledMapRenderer(map);
+	
 		
 		world = new World(new Vector2(0, 0), true);
 		player = new Player(world);
-		
-        stateTime = 0f;
+		player.setPosition(new Vector2(10,10));
         
         camera = new OrthographicCamera(Gdx.graphics.getWidth(),Gdx.graphics.
                 getHeight());
-       camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
-       camera.update();
+        camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
+        camera.zoom = 0.5f;
+        camera.update();
        
-        
 	}
 
 	Texture currentFrame;
@@ -51,62 +65,27 @@ public class Game extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		world.step(1f/60f, 6, 2);
 		
-		camera.position.set(player.getPosition().x + player.getTexture(0, true).getRegionWidth() / 2, player.getPosition().y, 0);
+		camera.position.set(player.getPosition().x + player.getCurrentTexture().getRegionWidth() / 2, player.getPosition().y, 0);
 		camera.update();
 		
 		mapRenderer.setView(camera);
-		mapRenderer.render();
+		mapRenderer.render(background);
 		
-		stateTime += Gdx.graphics.getDeltaTime();
-
-		Vector2 playerVelocity = new Vector2();
-        // On right or left arrow set the velocity at a fixed rate in that direction
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-        	playerVelocity.x = player.getSpeed();
-        	player.setDirection(3);
-        	player.isMoving = true;
-        } else if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-        	playerVelocity.x = -player.getSpeed();
-        	player.setDirection(1);
-        	player.isMoving = true;
-        } else {
-        	playerVelocity.x = 0;
-        }
-        
-        if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
-        	playerVelocity.y = player.getSpeed();
-        	player.setDirection(0);
-        	player.isMoving = true;
-        } else if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-        	playerVelocity.y = -player.getSpeed();
-        	player.setDirection(2);
-        	player.isMoving = true;
-        } else {
-        	playerVelocity.y = 0;
-        	
-        }
-        
-        if (playerVelocity.y == 0 && playerVelocity.x == 0)
-        	player.isMoving = false;
-        
-        if (player.getPosition().x < 0)
-        	player.setTransform(new Vector2(0, player.getPosition().y));
-        if (player.getPosition().y < 0)
-        	player.setTransform(new Vector2(player.getPosition().x,0));
-        
-        player.setVelocity(new Vector2(playerVelocity.x, playerVelocity.y));
-        
-        
-        //currentFrame = player.getTexture(stateTime);  // #16
-        
-        // Now update the sprite position accordingly to it's now updated Physics body
-        //player.test().setPosition(player.getPosition().x, player.getPosition().y);
 		batch.setProjectionMatrix(camera.combined);
-		camera.zoom = 0.9f;
+		
 		batch.begin();
-		batch.draw(player.getTexture(stateTime, !player.isMoving), player.getPosition().x, player.getPosition().y, player.size().x, player.size().y);
-		//batch.draw(player.test(), player.test().getX(), player.test().getY());             // #17
+		
+		player.draw(batch);
+		
 		batch.end();
+		
+		mapRenderer.render(foreground);
+		debugBatch.begin();
+		font.setColor(Color.WHITE);
+		Vector2 playerPos = player.getWorldPosition();
+		font.draw(debugBatch, "X: " + (int) playerPos.x + " Y: " + (int) playerPos.y, 50, 50);
+		
+		debugBatch.end();
 	}
 	
 	@Override
@@ -114,6 +93,25 @@ public class Game extends ApplicationAdapter {
 		batch.dispose();
 		player.dispose();
 		world.dispose();
+	}
+	
+
+	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void render(float delta) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hide() {
+		// TODO Auto-generated method stub
+		
 	}
 
 
