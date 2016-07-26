@@ -8,23 +8,25 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Player extends Sprite implements InputProcessor {
+public class Player extends Actor implements InputProcessor{
 	
-	Texture playerImage;
-	Sprite playerSprite;
-    Body player;
-    TiledMapTileLayer collisionLayer;
+    MapLayers collisionLayers;
+    public Vector3 MousePos;
     
     float playerSpeed = 200f;
     public boolean isMoving = false;
     Direction direction = Direction.NORTH;
+    
+    Animation walkNorthAnimation, walkWestAnimation, walkSouthAnimation, walkEastAnimation;
+    Animation[] stoppedAnimation = new Animation[4];
+    TextureRegion currentFrame;
     float stateTime = 0;
     
     public float getSpeed() {
@@ -35,21 +37,10 @@ public class Player extends Sprite implements InputProcessor {
     	playerSpeed = speed;
     }
     
-    public void setVelocity(Vector2 velocity) {
-    	player.setLinearVelocity(velocity);
-    }
-    
     public Vector2 getPosition() {
     	Vector2 pos = new Vector2(getX(), getY());
 		return pos;
     }
-    
-    Vector2 getTileCoordinates(Vector2 pt, float tileHeight) {
-		  Vector2 tempPt = new Vector2(0, 0);
-		  tempPt.x = pt.x / tileHeight / 2;
-		  tempPt.y = pt.y / tileHeight;
-		  return(tempPt);
-	}
 	
 	Vector2 twoDToIso(Vector2 pt) {
 		  Vector2 tempPt = new Vector2(0,0);
@@ -60,9 +51,16 @@ public class Player extends Sprite implements InputProcessor {
 	
 	Vector2 isoToTwoD(Vector2 pt) {
 		Vector2 tempPt = new Vector2(0,0);
-		tempPt.x = (2 * pt.y + pt.x) / 2;
-		tempPt.y = (2 * pt.y - pt.x) / 2;
+		tempPt.x = (pt.x + ((pt.y-pt.x)/2)) * 64;
+		tempPt.y = (pt.y - pt.x) * 16;
 		return(tempPt);
+	}
+	
+	Vector2 getTileCoordinates(Vector2 pt, float tileHeight) {
+		  Vector2 tempPt = new Vector2(0, 0);
+		  tempPt.x = pt.x / tileHeight / 2;
+		  tempPt.y = pt.y / tileHeight;
+		  return(tempPt);
 	}
 	
     public Vector2 getWorldPosition() {
@@ -70,10 +68,8 @@ public class Player extends Sprite implements InputProcessor {
     }
     
     public void setWorldPosition(Vector2 pos) {
-    	Vector2 tempPt = new Vector2(0, 0);
-    	tempPt.x = pos.x;
-    	tempPt.y = pos.y;
-    	player.setTransform(tempPt, 0);
+    	setX((pos.x + ((pos.y-pos.x)/2)) * 64);
+		setY((pos.y - pos.x) * 16);
     }
     
     public void setDirection(Direction dir) {
@@ -89,7 +85,8 @@ public class Player extends Sprite implements InputProcessor {
     }
     
     public TextureRegion getCurrentTexture() {
-    	switch(direction) {
+    	
+		switch(direction) {
     	case NORTH:
     		currentFrame = walkNorthAnimation.getKeyFrame(stateTime,true);
     		break;
@@ -105,7 +102,8 @@ public class Player extends Sprite implements InputProcessor {
     	}
     	
     	if (!isMoving)
-    		currentFrame = stoppedAnimation.getKeyFrame(direction.getValue());
+    		currentFrame = stoppedAnimation[direction.getValue()].getKeyFrame(stateTime);
+    	
     	return currentFrame;
     }
     
@@ -114,15 +112,24 @@ public class Player extends Sprite implements InputProcessor {
     	setY(transform.y);
     }
     
-	public Player(World world, TiledMapTileLayer colisionLayer) {
-    	playerImage = new Texture("badlogic.jpg");
-		playerSprite = new Sprite(playerImage);
+	public Player(World world, MapLayers collisionLayers) {
+		super(new Texture("badlogic.jpg"));
+		
 		// Center the sprite in the top/middle of the screen
-        playerSprite.setPosition(Gdx.graphics.getWidth() / 2 - playerSprite.getWidth() / 2,
+        sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
         
-        this.collisionLayer = colisionLayer;
-        create();
+        this.collisionLayers = collisionLayers;
+        
+        Animator a = new Animator(9, 4, "male_walkcycle.png");
+        walkNorthAnimation = a.addAnimation(1, 7);
+        walkWestAnimation = a.addAnimation(10, 7);
+        walkSouthAnimation = a.addAnimation(19, 7);
+        walkEastAnimation = a.addAnimation(28, 7);
+        stoppedAnimation[0] = a.addAnimation(0, 1);
+        stoppedAnimation[1] = a.addAnimation(9, 1);
+        stoppedAnimation[2] = a.addAnimation(18, 1);
+        stoppedAnimation[3] = a.addAnimation(27, 1);
 	}
 	
 	public void draw(SpriteBatch spriteBatch) {
@@ -131,7 +138,7 @@ public class Player extends Sprite implements InputProcessor {
 		//super.draw(spriteBatch);
 	}
 	
-	Vector2 oldPos;
+	
 	void update(float deltaTime) {
 		stateTime += Gdx.graphics.getDeltaTime();
 
@@ -140,11 +147,9 @@ public class Player extends Sprite implements InputProcessor {
         if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
         	playerVelocity.x = getSpeed();
         	setDirection(Direction.EAST);
-        	isMoving = true;
         } else if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
         	playerVelocity.x = -getSpeed();
         	setDirection(Direction.WEST);
-        	isMoving = true;
         } else {
         	playerVelocity.x = 0;
         }
@@ -152,113 +157,58 @@ public class Player extends Sprite implements InputProcessor {
         if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
         	playerVelocity.y = getSpeed()/2;
         	setDirection(Direction.NORTH);
-        	isMoving = true;
         } else if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
         	playerVelocity.y = -getSpeed()/2;
         	setDirection(Direction.SOUTH);
-        	isMoving = true;
         } else {
         	playerVelocity.y = 0;
         }
         
         if (playerVelocity.y == 0 && playerVelocity.x == 0)
         	isMoving = false;
+        else
+        	isMoving = true;
         
-        oldPos = getPosition();
+        Vector2 oldPos = getPosition();
         setX(getX() + playerVelocity.x * deltaTime);
         setY(getY() + playerVelocity.y * deltaTime);
         
-        if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2){
+        if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
+        		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
+        		|| isCellBlocked(getWorldPosition().x, getWorldPosition().y)){
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
         
-        if (isCellBlocked(getWorldPosition().x, getWorldPosition().y)) {
-        	setX(oldPos.x);
-        	setY(oldPos.y);
-        }
-       
+        KeyPressed();
 	}
 	
 	private boolean isCellBlocked(float x, float y) {
-		Cell cell = collisionLayer.getCell((int) (x), (int) (y));
-		return cell != null && cell.getTile() != null && cell.getTile().getProperties().containsKey("blocked");
-	}
-
-
-	
-	public Body getBody() {
-		return player;
+		boolean blocked = false;
+		for (int i=0;i<3;i++) {
+			TiledMapTileLayer coll = (TiledMapTileLayer) collisionLayers.get(i);
+			Cell cell = coll.getCell((int) (x), (int) (y));
+			blocked = cell != null && cell.getTile() != null && cell.getTile().getProperties().containsKey("blocked");
+			if (blocked == true)
+				return true;
+		}
+		return blocked;
 	}
     
     public void dispose() {
-    	playerImage.dispose();
-    }
-    
-    private static final int        FRAME_COLS = 9;         // #1
-    private static final int        FRAME_ROWS = 4;         // #2
-
-    Animation                       walkNorthAnimation;          // #3
-    Animation                       walkWestAnimation;          // #3
-    Animation                       walkSouthAnimation;          // #3
-    Animation                       walkEastAnimation;          // #3
-    Animation						stoppedAnimation;
-    Texture                         walkSheet;              // #4
-    TextureRegion[]                 walkFrames;             // #5
-    TextureRegion                   currentFrame;           // #7
-    
-    public void create() {
-        walkSheet = new Texture(Gdx.files.internal("male_walkcycle.png")); // #9
-        TextureRegion[][] tmp = TextureRegion.split(walkSheet, walkSheet.getWidth()/FRAME_COLS, walkSheet.getHeight()/FRAME_ROWS);              // #10
-        walkFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-        int index = 0;
-        for (int i = 0; i < FRAME_ROWS; i++) {
-            for (int j = 0; j < FRAME_COLS; j++) {
-                walkFrames[index++] = tmp[i][j];
-            }
-        }
-        TextureRegion[] stopped = {walkFrames[0], walkFrames[9], walkFrames[18], walkFrames[27]};
-        TextureRegion[] north = new TextureRegion[7];
-        TextureRegion[] west = new TextureRegion[7];
-        TextureRegion[] south = new TextureRegion[7];
-        TextureRegion[] east = new TextureRegion[7];
-        int n = 0;
-        for (int i=1;i<8;i++) {
-        	north[n] = walkFrames[i];
-        	n++;
-        }
-        n = 0;
-        for (int i=10;i<17;i++) {
-        	west[n] = walkFrames[i];
-        	n++;
-        }
-        n = 0;
-        for (int i=19;i<26;i++) {
-        	south[n] = walkFrames[i];
-        	n++;
-        }
-        n = 0;
-        for (int i=28;i<35;i++) {
-        	east[n] = walkFrames[i];
-        	n++;
-        }
-        
-        walkNorthAnimation = new Animation(0.060f, north);      // #11
-        walkWestAnimation = new Animation(0.060f, west);      // #11
-        walkSouthAnimation = new Animation(0.060f, south);      // #11
-        walkEastAnimation = new Animation(0.060f, east);      // #11
-        stoppedAnimation = new Animation(1, stopped);
     }
 
 	@Override
 	public boolean keyDown(int keycode) {
-		// TODO Auto-generated method stub
+		
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-		// TODO Auto-generated method stub
+			if (keycode == 29) {
+				System.out.println("hey");
+			}
 		return false;
 	}
 
@@ -296,5 +246,25 @@ public class Player extends Sprite implements InputProcessor {
 	public boolean scrolled(int amount) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public Vector2 getTileClicked() {
+		Vector2 m = new Vector2(MousePos.x, MousePos.y);
+		return twoDToIso(getTileCoordinates(m, 32));
+	}
+
+	public void KeyPressed() {
+		if(Gdx.input.isKeyPressed(Input.Keys.A)) {
+			//setWorldPosition(new Vector2(99,99));
+			
+			System.out.println(getPosition().x + " " + (getPosition().x + size().x));
+			System.out.println(MousePos.x);
+			if (MousePos.x < getPosition().x + size().x 
+					&& MousePos.x > getPosition().x - size().x
+					&& MousePos.y < getPosition().y + size().y
+					&& MousePos.y > getPosition().y - size().y) {
+				System.out.println("yes");
+			}
+		}
 	}
 }
