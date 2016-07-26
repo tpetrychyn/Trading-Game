@@ -1,10 +1,14 @@
 package com.trading.game;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
@@ -23,9 +27,9 @@ public class GameWorld {
 	TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
 	List<Actor> actors;
-	Npc npc;
 	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
 	MapLayers collisionLayers;
+	ShapeRenderer sr;
 	
 	public GameWorld(String mapFile) {
 		map = new TmxMapLoader().load(mapFile);
@@ -33,9 +37,12 @@ public class GameWorld {
 		world = new World(new Vector2(0, 0), true);
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
 		actors = new ArrayList<Actor>();
-		npc = new Npc(new Texture("male_walkcycle.png"), 20, 7, this);
-		npc.startRandomWalk(2);
-		actors.add(npc);
+		for (int i=0;i<100;i++) {
+			Npc npc = new Npc(new Texture("male_walkcycle.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i);
+			npc.startRandomWalk(5);
+			actors.add(npc);
+		}
+		sr = new ShapeRenderer();
 	}
 	
 	public void Update(Player player, SpriteBatch batch) {
@@ -46,8 +53,21 @@ public class GameWorld {
 		
 		batch.begin();
 		player.draw(batch);
-		npc.Draw(batch);
+		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
+			Npc n = (Npc) i.next();
+			n.Draw(batch);
+			
+		}
 		batch.end();
+		
+		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
+			Npc n = (Npc) i.next();
+			sr.setProjectionMatrix(Game.getCamera().combined);
+			sr.begin(ShapeType.Line);
+			sr.setColor(new Color(0,0,1,0));
+			sr.rect(n.getX(), n.getY(), n.getWidth(), n.getHeight());
+			sr.end();
+		}
 		
 		mapRenderer.render(foreground);
 	}

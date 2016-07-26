@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.trading.entities.Player;
 
@@ -21,6 +23,8 @@ public class Game extends ApplicationAdapter implements Screen {
     Player player;
     
     public static OrthographicCamera camera;
+    
+    ShapeRenderer sr;
 	
 	@Override
 	public void create () {
@@ -39,6 +43,8 @@ public class Game extends ApplicationAdapter implements Screen {
         camera.zoom = 0.5f;
         camera.update();
         
+        sr = new ShapeRenderer();
+        
         Gdx.input.setInputProcessor(player);
 	}
 	
@@ -50,7 +56,7 @@ public class Game extends ApplicationAdapter implements Screen {
 	public void render () {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		world.getWorld().step(1f/120f, 6, 2);
+		world.getWorld().step(1f/60f, 6, 2);
 		
 		camera.position.set(player.getPosition().x + player.getCurrentTexture().getRegionWidth() / 2, player.getPosition().y, 0);
 		camera.update();
@@ -64,6 +70,12 @@ public class Game extends ApplicationAdapter implements Screen {
 		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
 		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
 		debugBatch.end();
+		
+		sr.setProjectionMatrix(camera.combined);
+		sr.begin(ShapeType.Line);
+		sr.setColor(new Color(0,0,1,0));
+		sr.rect((player.getPosition().x), (player.getPosition().y), player.sprite.getWidth(), player.sprite.getHeight());
+		sr.end();
 	}
 	
 	@Override

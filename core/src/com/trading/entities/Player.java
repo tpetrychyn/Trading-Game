@@ -113,7 +113,7 @@ public class Player extends Actor implements InputProcessor {
     	setY(transform.y);
     }
     
-    Sprite sprite;
+    public Sprite sprite;
 	public Player(GameWorld world) {
 		
 		this.world = world;
@@ -138,7 +138,8 @@ public class Player extends Actor implements InputProcessor {
 	
 	public void draw(SpriteBatch batch) {
 		update(Gdx.graphics.getDeltaTime());
-		batch.draw(getCurrentTexture(), getPosition().x, getPosition().y, size().x, size().y);
+		sprite = new Sprite(currentFrame);
+		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
 		//super.draw(spriteBatch);
 	}
 	
@@ -194,7 +195,6 @@ public class Player extends Actor implements InputProcessor {
 		if(keycode == Input.Keys.A) {
 			//setWorldPosition(new Vector2(99,99));
 			world.setWorldPosition(this, new Vector2(50,50));
-			System.out.println(getPosition().x + " " + (getPosition().x + size().x));
 			if (mousePos.x < getPosition().x + size().x 
 					&& mousePos.x > getPosition().x - size().x
 					&& mousePos.y < getPosition().y + size().y
@@ -224,19 +224,22 @@ public class Player extends Actor implements InputProcessor {
 		try {
 			for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
 			    Actor a = i.next();
-			    System.out.println((a.getX() - a.getWidth()) + " " + (a.getX() + a.getWidth()));
+			    //System.out.println(a.getWidth() + " : " + a.getHeight());
 			    if (mousePos.x < a.getX() + a.getWidth() 
-						&& mousePos.x > a.getX() - a.getWidth() 
+						&& mousePos.x > a.getX() 
 						&& mousePos.y < a.getY() + a.getHeight() 
-						&& mousePos.y > a.getY() - a.getHeight() ) {
-			    	System.out.println(a);
+						&& mousePos.y > a.getY()) {
+			    	System.out.println(((Npc) a).Id);
+			    	System.out.println("Mouse: " + mousePos);
+			    	System.out.println((a.getX()) + " " + (a.getY()));
+			    	System.out.println((a.getX() + a.getWidth()) + " " + (a.getY() + a.getHeight()));
 					((Npc) a).stopRandomWalk();
+					return false;
 				}
 			}
 		} catch(Exception e) {
 			
 		}
-		System.out.println(mousePos);
 		return false;
 	}
 

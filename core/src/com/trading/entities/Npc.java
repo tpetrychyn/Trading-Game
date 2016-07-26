@@ -16,23 +16,33 @@ public class Npc extends Actor {
 	
 	Sprite sprite;
 	GameWorld world;
-	Vector2 velocity = new Vector2();;
+	Vector2 velocity = new Vector2();
 	Animation[] walkAnimations;
 	Animation walk;
 	Task randomWalk;
 	Vector2 minBounds;
 	Vector2 maxBounds;
+	Direction direction = Direction.SOUTH;
+	public int Id;
 	
 	float stateTime;
 	
-	public Npc(Texture image, float x, float y, GameWorld world) {
+	public Npc(Texture image, float x, float y, GameWorld world, int id) {
+		Id = id;
 		sprite = new Sprite(image);
 		this.world = world;
 		world.setWorldPosition(this, new Vector2(x,y));
-		setWidth(sprite.getWidth());
-		setHeight(sprite.getHeight());
+		walkAnimations = new Animation[8];
 		Animator a = new Animator(9, 4, "male_walkcycle.png");
-        walk = a.addAnimation(1, 7);
+        walkAnimations[0] = a.addAnimation(1, 7);
+        walkAnimations[1] = a.addAnimation(10, 7);
+        walkAnimations[2] = a.addAnimation(19, 7);
+        walkAnimations[3] = a.addAnimation(28, 7);
+
+        walkAnimations[4] = a.addAnimation(0, 1);
+        walkAnimations[5] = a.addAnimation(9, 1);
+        walkAnimations[6] = a.addAnimation(18, 1);
+        walkAnimations[7] = a.addAnimation(27, 1);
 	}
 	
 	public void startRandomWalk(int delay) {
@@ -41,7 +51,7 @@ public class Npc extends Actor {
 		    public void run() {
 		        randomWalk();
 		    }
-		}, 0, delay);
+		}, 0, Util.randomRange(1, delay));
 	}
 	
 	public void stopRandomWalk() {
@@ -52,7 +62,6 @@ public class Npc extends Actor {
 	
 	public void Draw(SpriteBatch batch) {
 		stateTime += Gdx.graphics.getDeltaTime();
-		sprite = new Sprite(walk.getKeyFrame(stateTime, true));
 		
 		Vector2 oldPos = new Vector2(getX(), getY());
         setX(getX() + velocity.x * Gdx.graphics.getDeltaTime());
@@ -74,6 +83,14 @@ public class Npc extends Actor {
         	}		
         }
         
+        //if npc is moving use an animated sprite, if not use the static sprites
+        if (Math.abs(velocity.x) > 0 || Math.abs(velocity.y) > 0)
+        	sprite = new Sprite(walkAnimations[direction.getValue()].getKeyFrame(stateTime, true));
+        else
+        	sprite = new Sprite(walkAnimations[direction.getValue() + 4].getKeyFrame(stateTime, true));
+        
+        setWidth(sprite.getWidth());
+		setHeight(sprite.getHeight());
 		batch.draw(sprite, getX(), getY(), sprite.getWidth(), sprite.getHeight());
 	}
 	
@@ -84,21 +101,27 @@ public class Npc extends Actor {
 	}
 	
 	void randomWalk() {
-		int randomWalk = Util.randomRange(0, 5);
-		System.out.println(randomWalk);
+		int randomWalk = Util.randomRange(0, 8);
 		switch (randomWalk) {
 		case 0:
 			velocity.x = 20f;
+			velocity.y = 0f;
+			direction = Direction.EAST;
 			break;
 		case 1:
 			velocity.x = -20f;
-			velocity.y = 20f;
+			velocity.y = 0f;
+			direction = Direction.WEST;
 			break;
 		case 2:
 			velocity.y = 20f;
+			velocity.x = 0f;
+			direction = Direction.NORTH;
 			break;
 		case 3: 
 			velocity.y = -20f;
+			velocity.x = 0f;
+			direction = Direction.SOUTH;
 			break;
 		default:
 			velocity.x = 0;
