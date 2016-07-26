@@ -1,5 +1,7 @@
 package com.trading.entities;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
@@ -8,17 +10,16 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.maps.MapLayers;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
-import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.trading.game.Game;
+import com.trading.game.GameWorld;
 
-public class Player extends Actor implements InputProcessor{
+public class Player extends Actor implements InputProcessor {
 	
-    MapLayers collisionLayers;
-    public Vector3 MousePos;
+    Vector3 mousePos = new Vector3(0, 0, 0);
+    GameWorld world;
     
     float playerSpeed = 200f;
     public boolean isMoving = false;
@@ -64,7 +65,7 @@ public class Player extends Actor implements InputProcessor{
 	}
 	
     public Vector2 getWorldPosition() {
-    	return twoDToIso(getTileCoordinates(getPosition(), 32));
+    	return world.getWorldPosition(getPosition());
     }
     
     public void setWorldPosition(Vector2 pos) {
@@ -112,14 +113,17 @@ public class Player extends Actor implements InputProcessor{
     	setY(transform.y);
     }
     
-	public Player(World world, MapLayers collisionLayers) {
-		super(new Texture("badlogic.jpg"));
+    Sprite sprite;
+	public Player(GameWorld world) {
+		
+		this.world = world;
+		//super(new Texture("badlogic.jpg"));
+		Texture t = new Texture("badlogic.jpg");
+		sprite = new Sprite(t);
 		
 		// Center the sprite in the top/middle of the screen
         sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
-        
-        this.collisionLayers = collisionLayers;
         
         Animator a = new Animator(9, 4, "male_walkcycle.png");
         walkNorthAnimation = a.addAnimation(1, 7);
@@ -132,16 +136,16 @@ public class Player extends Actor implements InputProcessor{
         stoppedAnimation[3] = a.addAnimation(27, 1);
 	}
 	
-	public void draw(SpriteBatch spriteBatch) {
+	public void draw(SpriteBatch batch) {
 		update(Gdx.graphics.getDeltaTime());
-		spriteBatch.draw(getCurrentTexture(), getPosition().x, getPosition().y, size().x, size().y);
+		batch.draw(getCurrentTexture(), getPosition().x, getPosition().y, size().x, size().y);
 		//super.draw(spriteBatch);
 	}
 	
 	
 	void update(float deltaTime) {
 		stateTime += Gdx.graphics.getDeltaTime();
-
+		
 		Vector2 playerVelocity = new Vector2();
         // On right or left arrow set the velocity at a fixed rate in that direction
         if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
@@ -175,40 +179,34 @@ public class Player extends Actor implements InputProcessor{
         
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
-        		|| isCellBlocked(getWorldPosition().x, getWorldPosition().y)){
+        		|| world.isCellBlocked(getWorldPosition().x, getWorldPosition().y)){
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
-        
-        KeyPressed();
 	}
 	
-	private boolean isCellBlocked(float x, float y) {
-		boolean blocked = false;
-		for (int i=0;i<3;i++) {
-			TiledMapTileLayer coll = (TiledMapTileLayer) collisionLayers.get(i);
-			Cell cell = coll.getCell((int) (x), (int) (y));
-			blocked = cell != null && cell.getTile() != null && cell.getTile().getProperties().containsKey("blocked");
-			if (blocked == true)
-				return true;
-		}
-		return blocked;
+	public Vector2 getMousePosition() {
+		return new Vector2(mousePos.x, mousePos.y);
 	}
-    
-    public void dispose() {
-    }
 
 	@Override
 	public boolean keyDown(int keycode) {
-		
+		if(keycode == Input.Keys.A) {
+			//setWorldPosition(new Vector2(99,99));
+			world.setWorldPosition(this, new Vector2(50,50));
+			System.out.println(getPosition().x + " " + (getPosition().x + size().x));
+			if (mousePos.x < getPosition().x + size().x 
+					&& mousePos.x > getPosition().x - size().x
+					&& mousePos.y < getPosition().y + size().y
+					&& mousePos.y > getPosition().y - size().y) {
+				System.out.println("yes");
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-			if (keycode == 29) {
-				System.out.println("hey");
-			}
 		return false;
 	}
 
@@ -221,6 +219,24 @@ public class Player extends Actor implements InputProcessor{
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		// TODO Auto-generated method stub
+		
+		mousePos = Game.getCamera().unproject(new Vector3(screenX, screenY, 0));
+		try {
+			for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
+			    Actor a = i.next();
+			    System.out.println((a.getX() - a.getWidth()) + " " + (a.getX() + a.getWidth()));
+			    if (mousePos.x < a.getX() + a.getWidth() 
+						&& mousePos.x > a.getX() - a.getWidth() 
+						&& mousePos.y < a.getY() + a.getHeight() 
+						&& mousePos.y > a.getY() - a.getHeight() ) {
+			    	System.out.println(a);
+					((Npc) a).stopRandomWalk();
+				}
+			}
+		} catch(Exception e) {
+			
+		}
+		System.out.println(mousePos);
 		return false;
 	}
 
@@ -249,22 +265,7 @@ public class Player extends Actor implements InputProcessor{
 	}
 	
 	public Vector2 getTileClicked() {
-		Vector2 m = new Vector2(MousePos.x, MousePos.y);
-		return twoDToIso(getTileCoordinates(m, 32));
-	}
-
-	public void KeyPressed() {
-		if(Gdx.input.isKeyPressed(Input.Keys.A)) {
-			//setWorldPosition(new Vector2(99,99));
-			
-			System.out.println(getPosition().x + " " + (getPosition().x + size().x));
-			System.out.println(MousePos.x);
-			if (MousePos.x < getPosition().x + size().x 
-					&& MousePos.x > getPosition().x - size().x
-					&& MousePos.y < getPosition().y + size().y
-					&& MousePos.y > getPosition().y - size().y) {
-				System.out.println("yes");
-			}
-		}
+		Vector2 m = new Vector2(mousePos.x, mousePos.y);
+		return world.getWorldPosition(m);//twoDToIso(getTileCoordinates(m, 32));
 	}
 }
