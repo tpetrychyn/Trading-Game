@@ -15,6 +15,8 @@ import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -38,11 +40,15 @@ public class GameWorld {
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
 		actors = new ArrayList<Actor>();
 		for (int i=0;i<100;i++) {
-			Npc npc = new Npc(new Texture("male_walkcycle.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i);
+			Npc npc = new Npc(new Texture("male_walk.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i, 0.5f);
 			npc.startRandomWalk(5);
 			actors.add(npc);
 		}
 		sr = new ShapeRenderer();
+	}
+	
+	public void addPlayer(Player p) {
+		actors.add(p);
 	}
 	
 	public void Update(Player player, SpriteBatch batch) {
@@ -54,19 +60,27 @@ public class GameWorld {
 		batch.begin();
 		player.draw(batch);
 		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
-			Npc n = (Npc) i.next();
-			n.Draw(batch);
+			try {
+				Npc n = (Npc) i.next();
+				n.Draw(batch);
+			} catch(Exception e) {
+				
+			}
 			
 		}
 		batch.end();
 		
 		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
-			Npc n = (Npc) i.next();
-			sr.setProjectionMatrix(Game.getCamera().combined);
-			sr.begin(ShapeType.Line);
-			sr.setColor(new Color(0,0,1,0));
-			sr.rect(n.getX(), n.getY(), n.getWidth(), n.getHeight());
-			sr.end();
+			try {
+				Npc n = (Npc) i.next();
+				sr.setProjectionMatrix(Game.getCamera().combined);
+				sr.begin(ShapeType.Line);
+				sr.setColor(new Color(0,0,1,0));
+				sr.rect(n.getX(), n.getY(), n.getWidth(), n.getHeight());
+				sr.end();
+			} catch(Exception e) {
+				
+			}
 		}
 		
 		mapRenderer.render(foreground);

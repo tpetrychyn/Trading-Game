@@ -1,14 +1,21 @@
 package com.trading.entities;
 
+import java.util.Iterator;
+
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
+import com.trading.game.Game;
 import com.trading.game.GameWorld;
 import com.trading.game.Util;
 
@@ -23,17 +30,21 @@ public class Npc extends Actor {
 	Vector2 minBounds;
 	Vector2 maxBounds;
 	Direction direction = Direction.SOUTH;
+	private float scale;
 	public int Id;
+	BitmapFont font;
 	
 	float stateTime;
 	
-	public Npc(Texture image, float x, float y, GameWorld world, int id) {
+	public Npc(Texture image, float x, float y, GameWorld world, int id, float scale) {
 		Id = id;
+		this.scale = scale;
+		font = new BitmapFont();
 		sprite = new Sprite(image);
 		this.world = world;
 		world.setWorldPosition(this, new Vector2(x,y));
 		walkAnimations = new Animation[8];
-		Animator a = new Animator(9, 4, "male_walkcycle.png");
+		Animator a = new Animator(9, 4, "male_walk.png");
         walkAnimations[0] = a.addAnimation(1, 7);
         walkAnimations[1] = a.addAnimation(10, 7);
         walkAnimations[2] = a.addAnimation(19, 7);
@@ -43,6 +54,7 @@ public class Npc extends Actor {
         walkAnimations[5] = a.addAnimation(9, 1);
         walkAnimations[6] = a.addAnimation(18, 1);
         walkAnimations[7] = a.addAnimation(27, 1);
+        
 	}
 	
 	public void startRandomWalk(int delay) {
@@ -70,9 +82,12 @@ public class Npc extends Actor {
         Vector2 newPos = new Vector2(getX(), getY());
         if (world.getWorldPosition(newPos).x < 0 || world.getWorldPosition(newPos).y < 0.2
         		|| world.getWorldPosition(newPos).x > 99.8 || world.getWorldPosition(newPos).y > 100
-        		|| world.isCellBlocked(world.getWorldPosition(newPos).x, world.getWorldPosition(newPos).y)){
+        		|| world.isCellBlocked(world.getWorldPosition(newPos).x, world.getWorldPosition(newPos).y)
+        		|| actorCollision() || playerCollision()){
         	setY(oldPos.y);
         	setX(oldPos.x);
+        	velocity.x = 0f;
+    		velocity.y = 0f;
         }
         
         if (maxBounds != null && minBounds != null) {
@@ -80,6 +95,8 @@ public class Npc extends Actor {
         			|| world.getWorldPosition(newPos).x > maxBounds.x || world.getWorldPosition(newPos).y > maxBounds.y) {
         		setX(oldPos.x);
         		setY(oldPos.y);
+        		velocity.x = 0f;
+        		velocity.y = 0f;
         	}		
         }
         
@@ -89,15 +106,44 @@ public class Npc extends Actor {
         else
         	sprite = new Sprite(walkAnimations[direction.getValue() + 4].getKeyFrame(stateTime, true));
         
-        setWidth(sprite.getWidth());
-		setHeight(sprite.getHeight());
-		batch.draw(sprite, getX(), getY(), sprite.getWidth(), sprite.getHeight());
+        setWidth(sprite.getWidth()*scale);
+		setHeight(sprite.getHeight()*scale);
+		batch.draw(sprite, getX(), getY(), Size().x, Size().y);
+		font.setColor(Color.WHITE);
+		font.draw(batch, Id + "", getX() + Size().x/2, getY()+Size().y + 10);
 	}
 	
+    public boolean actorCollision() {
+		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
+		    Actor a = i.next();
+		    if (hashCode() == a.hashCode()) {
+		    	continue;
+		    }
+			Rectangle p = new Rectangle(getX(), getY(), getWidth(), getHeight());
+			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
+			if (Intersector.overlaps(p, n)) {
+				return true;
+			}
+		}
+		return false;
+	}
+    
+    boolean playerCollision() {
+		Rectangle p = new Rectangle(Game.getPlayer().getX(), Game.getPlayer().getY(), Game.getPlayer().getWidth(), Game.getPlayer().getHeight());
+		Rectangle n = new Rectangle(getX(), getY(), getWidth(), getHeight());
+		if (Intersector.overlaps(p, n)) {
+			return true;
+		}
+		return false;
+    }
 	
 	public void setBounds(int minX, int minY, int maxX, int maxY) {
 		minBounds = new Vector2(minX, minY);
 		maxBounds = new Vector2(maxX, maxY);
+	}
+	
+	public Vector2 Size() {
+		return new Vector2(getWidth(), getHeight());
 	}
 	
 	void randomWalk() {
@@ -131,6 +177,5 @@ public class Npc extends Actor {
 	}
 	
 	public void addAnimation(Texture sheet, int columns, int rows) {
-		
 	}
 }

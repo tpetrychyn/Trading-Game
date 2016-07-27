@@ -20,7 +20,7 @@ public class Game extends ApplicationAdapter implements Screen {
 	BitmapFont font;
 	
 	GameWorld world;
-    Player player;
+    static Player player;
     
     public static OrthographicCamera camera;
     
@@ -36,6 +36,8 @@ public class Game extends ApplicationAdapter implements Screen {
 		
 		player = new Player(world);
 		player.setPosition(new Vector2(10,10));
+		
+		world.addPlayer(player);
         
         camera = new OrthographicCamera(Gdx.graphics.getWidth(),Gdx.graphics.
                 getHeight());
@@ -70,12 +72,10 @@ public class Game extends ApplicationAdapter implements Screen {
 		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
 		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
 		debugBatch.end();
-		
-		sr.setProjectionMatrix(camera.combined);
-		sr.begin(ShapeType.Line);
-		sr.setColor(new Color(0,0,1,0));
-		sr.rect((player.getPosition().x), (player.getPosition().y), player.sprite.getWidth(), player.sprite.getHeight());
-		sr.end();
+	}
+	
+	public static Player getPlayer() {
+		return player;
 	}
 	
 	@Override

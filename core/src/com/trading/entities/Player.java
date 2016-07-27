@@ -5,11 +5,16 @@ import java.util.Iterator;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -17,6 +22,8 @@ import com.trading.game.Game;
 import com.trading.game.GameWorld;
 
 public class Player extends Actor implements InputProcessor {
+	
+	ShapeRenderer sr;
 	
     Vector3 mousePos = new Vector3(0, 0, 0);
     GameWorld world;
@@ -118,14 +125,13 @@ public class Player extends Actor implements InputProcessor {
 		
 		this.world = world;
 		//super(new Texture("badlogic.jpg"));
-		Texture t = new Texture("badlogic.jpg");
+		Texture t = new Texture("male_idle.png");
 		sprite = new Sprite(t);
-		
 		// Center the sprite in the top/middle of the screen
         sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
         
-        Animator a = new Animator(9, 4, "male_walkcycle.png");
+        Animator a = new Animator(9, 4, "male_walk.png");
         walkNorthAnimation = a.addAnimation(1, 7);
         walkWestAnimation = a.addAnimation(10, 7);
         walkSouthAnimation = a.addAnimation(19, 7);
@@ -134,13 +140,14 @@ public class Player extends Actor implements InputProcessor {
         stoppedAnimation[1] = a.addAnimation(9, 1);
         stoppedAnimation[2] = a.addAnimation(18, 1);
         stoppedAnimation[3] = a.addAnimation(27, 1);
+        
+        sr = new ShapeRenderer();
 	}
 	
 	public void draw(SpriteBatch batch) {
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(currentFrame);
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
-		//super.draw(spriteBatch);
 	}
 	
 	
@@ -149,20 +156,20 @@ public class Player extends Actor implements InputProcessor {
 		
 		Vector2 playerVelocity = new Vector2();
         // On right or left arrow set the velocity at a fixed rate in that direction
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+        if(Gdx.input.isKeyPressed(Input.Keys.D)) {
         	playerVelocity.x = getSpeed();
         	setDirection(Direction.EAST);
-        } else if(Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+        } else if(Gdx.input.isKeyPressed(Input.Keys.A)) {
         	playerVelocity.x = -getSpeed();
         	setDirection(Direction.WEST);
         } else {
         	playerVelocity.x = 0;
         }
         
-        if(Gdx.input.isKeyPressed(Input.Keys.UP)) {
+        if(Gdx.input.isKeyPressed(Input.Keys.W)) {
         	playerVelocity.y = getSpeed()/2;
         	setDirection(Direction.NORTH);
-        } else if(Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+        } else if(Gdx.input.isKeyPressed(Input.Keys.S)) {
         	playerVelocity.y = -getSpeed()/2;
         	setDirection(Direction.SOUTH);
         } else {
@@ -180,7 +187,8 @@ public class Player extends Actor implements InputProcessor {
         
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
-        		|| world.isCellBlocked(getWorldPosition().x, getWorldPosition().y)){
+        		|| world.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
+        		|| actorCollision()){
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
@@ -189,18 +197,23 @@ public class Player extends Actor implements InputProcessor {
 	public Vector2 getMousePosition() {
 		return new Vector2(mousePos.x, mousePos.y);
 	}
+	
+	public boolean actorCollision() {
+		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
+		    Actor a = i.next();
+			Rectangle p = new Rectangle(getX(), getY(), size().x, size().y);
+			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
+			if (Intersector.overlaps(p, n)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	@Override
 	public boolean keyDown(int keycode) {
-		if(keycode == Input.Keys.A) {
-			//setWorldPosition(new Vector2(99,99));
+		if(keycode == Input.Keys.NUM_1) {
 			world.setWorldPosition(this, new Vector2(50,50));
-			if (mousePos.x < getPosition().x + size().x 
-					&& mousePos.x > getPosition().x - size().x
-					&& mousePos.y < getPosition().y + size().y
-					&& mousePos.y > getPosition().y - size().y) {
-				System.out.println("yes");
-			}
 		}
 		return false;
 	}
@@ -229,11 +242,11 @@ public class Player extends Actor implements InputProcessor {
 						&& mousePos.x > a.getX() 
 						&& mousePos.y < a.getY() + a.getHeight() 
 						&& mousePos.y > a.getY()) {
-			    	System.out.println(((Npc) a).Id);
-			    	System.out.println("Mouse: " + mousePos);
-			    	System.out.println((a.getX()) + " " + (a.getY()));
-			    	System.out.println((a.getX() + a.getWidth()) + " " + (a.getY() + a.getHeight()));
-					((Npc) a).stopRandomWalk();
+			    	if (distanceToPoint(new Vector2(a.getX(),a.getY())) < 30) {
+			    		System.out.println(((Npc) a).Id);
+			    		((Npc) a).stopRandomWalk();
+			    		((Npc) a).setColor(Color.WHITE);
+			    	}
 					return false;
 				}
 			}
@@ -270,5 +283,9 @@ public class Player extends Actor implements InputProcessor {
 	public Vector2 getTileClicked() {
 		Vector2 m = new Vector2(mousePos.x, mousePos.y);
 		return world.getWorldPosition(m);//twoDToIso(getTileCoordinates(m, 32));
+	}
+	
+	float distanceToPoint(Vector2 pt) {
+		return (float) Math.sqrt((getX()-pt.x)*(getX()-pt.x) + (getY()-pt.y)*(getY()-pt.y));
 	}
 }
