@@ -2,6 +2,7 @@ package com.trading.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -9,13 +10,14 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Vector2;
 import com.trading.entities.Player;
 
 public class Game extends ApplicationAdapter implements Screen {
 	SpriteBatch batch;
 	SpriteBatch debugBatch;
+	
+	public static ChatBox chatbox;
 	
 	BitmapFont font;
 	
@@ -47,7 +49,7 @@ public class Game extends ApplicationAdapter implements Screen {
         
         sr = new ShapeRenderer();
         
-        
+        chatbox = new ChatBox();
         Gdx.input.setInputProcessor(player);
 	}
 	
@@ -72,6 +74,13 @@ public class Game extends ApplicationAdapter implements Screen {
 		font.draw(debugBatch, "World X: " + (int) playerPos.x + " World Y: " + (int) playerPos.y, 50, 50);
 		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
 		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
+		if (chatbox.showTextEnter) {
+			chatbox.field.draw(debugBatch, 1f);
+		}
+		if (chatbox.shouldFade)
+			chatbox.fade -= Gdx.graphics.getDeltaTime();
+		chatbox.textArea.draw(debugBatch, chatbox.fade/10);
+		
 		debugBatch.end();
 	}
 	

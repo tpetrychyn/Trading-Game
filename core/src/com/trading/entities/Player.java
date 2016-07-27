@@ -12,15 +12,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
-import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.game.Game;
 import com.trading.game.GameWorld;
@@ -28,6 +21,7 @@ import com.trading.game.GameWorld;
 public class Player extends Actor implements InputProcessor {
 	
 	ShapeRenderer sr;
+	public boolean isTyping = false;
 	
     Vector3 mousePos = new Vector3(0, 0, 0);
     GameWorld world;
@@ -159,7 +153,8 @@ public class Player extends Actor implements InputProcessor {
 	
 	void update(float deltaTime) {
 		stateTime += Gdx.graphics.getDeltaTime();
-		
+		if (isTyping)
+			return;
 		Vector2 playerVelocity = new Vector2();
         // On right or left arrow set the velocity at a fixed rate in that direction
         if(Gdx.input.isKeyPressed(Input.Keys.D)) {
@@ -208,8 +203,13 @@ public class Player extends Actor implements InputProcessor {
 
 	@Override
 	public boolean keyDown(int keycode) {
-		if(keycode == Input.Keys.NUM_1) {
-			world.setWorldPosition(this, new Vector2(50,50));
+		if(keycode == Input.Keys.ENTER) {
+			//world.setWorldPosition(this, new Vector2(50,50));
+			Game.chatbox.showTextEnter = true;
+			Game.chatbox.shouldFade = false;
+			Game.chatbox.fade = 10f;
+			isTyping = true;
+			Gdx.input.setInputProcessor(Game.chatbox);
 		}
 		return false;
 	}
@@ -239,7 +239,7 @@ public class Player extends Actor implements InputProcessor {
 						&& mousePos.y < a.getY() + a.getHeight() 
 						&& mousePos.y > a.getY()) {
 			    	if (distanceToPoint(new Vector2(a.getX(),a.getY())) < 30) {
-			    		System.out.println(((Npc) a).Id);
+			    		System.out.println(((Npc) a).id);
 			    		((Npc) a).stopRandomWalk();
 			    		((Npc) a).setColor(Color.WHITE);
 			    	}

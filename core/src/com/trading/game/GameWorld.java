@@ -3,6 +3,7 @@ package com.trading.game;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
@@ -33,6 +34,26 @@ public class GameWorld {
 	MapLayers collisionLayers;
 	ShapeRenderer sr;
 	
+	private static String[] Beginning = { "Kr", "Ca", "Ra", "Mrok", "Cru",
+	         "Ray", "Bre", "Zed", "Drak", "Mor", "Jag", "Mer", "Jar", "Mjol",
+	         "Zork", "Mad", "Cry", "Zur", "Creo", "Azak", "Azur", "Rei", "Cro",
+	         "Mar", "Luk" };
+	   private static String[] Middle = { "air", "ir", "mi", "sor", "mee", "clo",
+	         "red", "cra", "ark", "arc", "miri", "lori", "cres", "mur", "zer",
+	         "marac", "zoir", "slamar", "salmar", "urak" };
+	   private static String[] End = { "d", "ed", "ark", "arc", "es", "er", "der",
+	         "tron", "med", "ure", "zur", "cred", "mur" };
+	   
+	   private static Random rand = new Random();
+
+	   public static String generateName() {
+
+	      return Beginning[rand.nextInt(Beginning.length)] + 
+	            Middle[rand.nextInt(Middle.length)]+
+	            End[rand.nextInt(End.length)];
+
+	   }
+	
 	public GameWorld(String mapFile) {
 		map = new TmxMapLoader().load(mapFile);
 		mapRenderer = new IsometricTiledMapRenderer(map);
@@ -42,6 +63,7 @@ public class GameWorld {
 		for (int i=0;i<100;i++) {
 			Npc npc = new Npc(new Texture("male_walk.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i, 0.5f);
 			npc.startRandomWalk(5);
+			npc.name = generateName();
 			actors.add(npc);
 		}
 		sr = new ShapeRenderer();

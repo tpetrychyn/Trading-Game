@@ -31,13 +31,14 @@ public class Npc extends Actor {
 	Vector2 maxBounds;
 	Direction direction = Direction.SOUTH;
 	private float scale;
-	public int Id;
+	public int id;
+	public String name;
 	BitmapFont font;
 	
 	float stateTime;
 	
 	public Npc(Texture image, float x, float y, GameWorld world, int id, float scale) {
-		Id = id;
+		this.id = id;
 		this.scale = scale;
 		font = new BitmapFont();
 		sprite = new Sprite(image);
@@ -110,7 +111,7 @@ public class Npc extends Actor {
 		setHeight(sprite.getHeight()*scale);
 		batch.draw(sprite, getX(), getY(), Size().x, Size().y);
 		font.setColor(Color.WHITE);
-		font.draw(batch, Id + "", getX() + Size().x/2, getY()+Size().y + 10);
+		font.draw(batch, name, getX() + Size().x/2, getY()+Size().y + 10);
 	}
 	
 	public void setBounds(int minX, int minY, int maxX, int maxY) {
