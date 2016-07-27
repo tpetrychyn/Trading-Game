@@ -72,7 +72,7 @@ public class GameWorld {
 		
 		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
 			try {
-				Npc n = (Npc) i.next();
+				Actor n = i.next();
 				sr.setProjectionMatrix(Game.getCamera().combined);
 				sr.begin(ShapeType.Line);
 				sr.setColor(new Color(0,0,1,0));
@@ -82,7 +82,6 @@ public class GameWorld {
 				
 			}
 		}
-		
 		mapRenderer.render(foreground);
 	}
 	
@@ -132,4 +131,19 @@ public class GameWorld {
     public Vector2 getWorldPosition(Vector2 pt) {
     	return Util.twoDToIso(getTileCoordinates(pt, 32));
     }
+    
+	
+	public boolean actorCollision(Actor self) {
+		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
+		    Actor a = i.next();
+		    if (a.hashCode() == self.hashCode())
+		    	continue;
+			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
+			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
+			if (Intersector.overlaps(p, n)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

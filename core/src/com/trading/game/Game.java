@@ -47,6 +47,7 @@ public class Game extends ApplicationAdapter implements Screen {
         
         sr = new ShapeRenderer();
         
+        
         Gdx.input.setInputProcessor(player);
 	}
 	

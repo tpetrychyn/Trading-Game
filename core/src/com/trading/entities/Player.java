@@ -17,6 +17,10 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.game.Game;
 import com.trading.game.GameWorld;
@@ -142,11 +146,13 @@ public class Player extends Actor implements InputProcessor {
         stoppedAnimation[3] = a.addAnimation(27, 1);
         
         sr = new ShapeRenderer();
+        
 	}
 	
 	public void draw(SpriteBatch batch) {
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(currentFrame);
+		
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
 	}
 	
@@ -188,26 +194,16 @@ public class Player extends Actor implements InputProcessor {
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
         		|| world.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
-        		|| actorCollision()){
+        		|| world.actorCollision(this)){
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
+        setWidth(size().x);
+        setHeight(size().y);
 	}
 	
 	public Vector2 getMousePosition() {
 		return new Vector2(mousePos.x, mousePos.y);
-	}
-	
-	public boolean actorCollision() {
-		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
-		    Actor a = i.next();
-			Rectangle p = new Rectangle(getX(), getY(), size().x, size().y);
-			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
-			if (Intersector.overlaps(p, n)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override

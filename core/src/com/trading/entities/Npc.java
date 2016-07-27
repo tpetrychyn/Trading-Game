@@ -83,7 +83,7 @@ public class Npc extends Actor {
         if (world.getWorldPosition(newPos).x < 0 || world.getWorldPosition(newPos).y < 0.2
         		|| world.getWorldPosition(newPos).x > 99.8 || world.getWorldPosition(newPos).y > 100
         		|| world.isCellBlocked(world.getWorldPosition(newPos).x, world.getWorldPosition(newPos).y)
-        		|| actorCollision() || playerCollision()){
+        		|| world.actorCollision(this)){
         	setY(oldPos.y);
         	setX(oldPos.x);
         	velocity.x = 0f;
@@ -112,30 +112,6 @@ public class Npc extends Actor {
 		font.setColor(Color.WHITE);
 		font.draw(batch, Id + "", getX() + Size().x/2, getY()+Size().y + 10);
 	}
-	
-    public boolean actorCollision() {
-		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
-		    Actor a = i.next();
-		    if (hashCode() == a.hashCode()) {
-		    	continue;
-		    }
-			Rectangle p = new Rectangle(getX(), getY(), getWidth(), getHeight());
-			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
-			if (Intersector.overlaps(p, n)) {
-				return true;
-			}
-		}
-		return false;
-	}
-    
-    boolean playerCollision() {
-		Rectangle p = new Rectangle(Game.getPlayer().getX(), Game.getPlayer().getY(), Game.getPlayer().getWidth(), Game.getPlayer().getHeight());
-		Rectangle n = new Rectangle(getX(), getY(), getWidth(), getHeight());
-		if (Intersector.overlaps(p, n)) {
-			return true;
-		}
-		return false;
-    }
 	
 	public void setBounds(int minX, int minY, int maxX, int maxY) {
 		minBounds = new Vector2(minX, minY);
