@@ -1,5 +1,6 @@
 package com.trading.entities;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
@@ -10,13 +11,18 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryonet.Client;
+import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
+import com.trading.game.GameServer;
+import com.trading.game.PlayerMovePacket;
 import com.trading.game.GameWorld;
 
 public class Player extends Actor implements InputProcessor {
@@ -88,7 +94,7 @@ public class Player extends Actor implements InputProcessor {
     }
     
     public Vector2 size() {
-    	return new Vector2(currentFrame.getRegionWidth(), currentFrame.getRegionHeight());
+    	return new Vector2(currentFrame.getRegionWidth() * 0.5f, currentFrame.getRegionHeight() * 0.5f);
     }
     
     public TextureRegion getCurrentTexture() {
@@ -119,7 +125,11 @@ public class Player extends Actor implements InputProcessor {
     	setY(transform.y);
     }
     
+    PlayerMovePacket p;
     public Sprite sprite;
+    PlayerMovePacket players[];
+	Client client;
+	int myId = 0;
 	public Player(GameWorld world) {
 		this.world = world;
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
@@ -127,7 +137,7 @@ public class Player extends Actor implements InputProcessor {
 		// Center the sprite in the top/middle of the screen
         sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
-        
+        p = new PlayerMovePacket();
         Animator a = new Animator(9, 4, "male_walk.png");
         walkNorthAnimation = a.addAnimation(1, 7);
         walkWestAnimation = a.addAnimation(10, 7);
@@ -141,19 +151,28 @@ public class Player extends Actor implements InputProcessor {
         currentFrame = getCurrentTexture();
         
         sr = new ShapeRenderer();
+        players = new PlayerMovePacket[100];
 	}
 	
-	public void draw(SpriteBatch batch) {
+	/*public void draw(SpriteBatch batch) {
+	
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(currentFrame);
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
-	}
+	}*/
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(getCurrentTexture());
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
+
+		for (int i=0;i<100;i++) {
+			if (players[i] != null && i != myId) {
+				System.out.println(players[i].clientID + " " + players[i].pos.x + " " + players[i].pos.y);
+				batch.draw(sprite, players[i].pos.x, players[i].pos.y, size().x, size().y);
+			}
+		}
 	}
 	
 	
@@ -201,6 +220,13 @@ public class Player extends Actor implements InputProcessor {
         }
         setWidth(size().x);
         setHeight(size().y);
+        
+        if (client != null && client.isConnected()) {
+			p.pos.x = getX();
+			p.pos.y = getY();
+			//if (p.pos.x != oldPos.x && p.pos.y != oldPos.y)
+				client.sendTCP(p);
+        }
 	}
 	
 	public Vector2 getMousePosition() {
@@ -217,8 +243,45 @@ public class Player extends Actor implements InputProcessor {
 			isTyping = true;
 			Gdx.input.setInputProcessor(Game.chatbox);
 		}
+		if (keycode == Input.Keys.NUM_2) {
+			GameServer g = new GameServer();
+		}
+		if (keycode == Input.Keys.NUM_3) {
+			client = new Client();
+		    client.start();
+		    try {
+				client.connect(5000, ip, 54555, 54777);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		    Kryo kryo = client.getKryo();
+		    kryo.register(PlayerMovePacket.class);
+		    kryo.register(Vector2.class);
+		    
+		    client.addListener(new Listener() {
+		        public void received (Connection connection, Object object) {
+		           if (object instanceof PlayerMovePacket) {
+		        	  PlayerMovePacket response = (PlayerMovePacket)object;
+		              players[response.clientID] = response;
+		              myId = client.getID();
+		           }
+		        }
+		     });
+		}
+		if (keycode == Input.Keys.NUM_4) {
+			for (int i=0;i<100;i++) {
+				if (players[i] == null)
+					continue;
+				System.out.println(players[i].pos.x);
+			}
+		}
+		if (keycode == Input.Keys.ESCAPE)
+			Gdx.app.exit();
 		return false;
 	}
+	
+	public String ip = "";
 
 	@Override
 	public boolean keyUp(int keycode) {
@@ -237,9 +300,8 @@ public class Player extends Actor implements InputProcessor {
 		
 		mousePos = Game.getCamera().unproject(new Vector3(screenX, screenY, 0));
 		try {
-			for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
+			for(Iterator<Actor> i = this.getStage().getActors().iterator(); i.hasNext(); ) {
 			    Actor a = i.next();
-			    //System.out.println(a.getWidth() + " : " + a.getHeight());
 			    if (mousePos.x < a.getX() + a.getWidth() 
 						&& mousePos.x > a.getX() 
 						&& mousePos.y < a.getY() + a.getHeight() 
@@ -257,6 +319,7 @@ public class Player extends Actor implements InputProcessor {
 		}
 		return false;
 	}
+	
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {

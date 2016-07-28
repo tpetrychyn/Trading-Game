@@ -30,7 +30,6 @@ public class GameWorld {
 	TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
 	List<Actor> actors;
-	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
 	MapLayers collisionLayers;
 	ShapeRenderer sr;
 	
@@ -73,7 +72,7 @@ public class GameWorld {
 		actors.add(p);
 	}
 	
-	public void Update(Player player, SpriteBatch batch) {
+	/*public void Update(Player player, SpriteBatch batch) {
 		mapRenderer.setView(Game.getCamera());
 		mapRenderer.render(backgroundLayers);
 		
@@ -110,7 +109,7 @@ public class GameWorld {
 				
 			}
 		}
-	}
+	}*/
 	
 	public List<Actor> getActors() {
 		return actors;
@@ -158,10 +157,9 @@ public class GameWorld {
     public Vector2 getWorldPosition(Vector2 pt) {
     	return Util.twoDToIso(getTileCoordinates(pt, 32));
     }
-    
 	
 	public boolean actorCollision(Actor self) {
-		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
+		for(Iterator<Actor> i = Game.getPlayer().getStage().getActors().iterator(); i.hasNext(); ) {
 		    Actor a = i.next();
 		    if (a.hashCode() == self.hashCode())
 		    	continue;

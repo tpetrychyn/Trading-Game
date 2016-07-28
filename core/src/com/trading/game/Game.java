@@ -5,6 +5,7 @@ import java.util.Iterator;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -21,7 +22,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
@@ -62,9 +62,25 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
     TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
 	
+	public class MyTextInputListener implements TextInputListener {
+		   @Override
+		   public void input (String text) {
+			   player.ip = text;
+		   }
+
+		   @Override
+		   public void canceled () {
+		   }
+		}
+	
+	
+	
+	
 	@Override
 	public void create () {
 		
+		MyTextInputListener listener = new MyTextInputListener();
+		Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
 		
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();
@@ -128,7 +144,9 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		mapRenderer.setView((OrthographicCamera) stage.getCamera());
 		mapRenderer.render(backgroundLayers);
 		
+		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
+		stage.setDebugAll(true);
 		
 		mapRenderer.render(foreground);
 		
@@ -166,12 +184,6 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	}
 
 	@Override
-	public void render(float delta) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void hide() {
 		// TODO Auto-generated method stub
 		
@@ -200,5 +212,11 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         float w = (float)VIRTUAL_WIDTH*scale;
         float h = (float)VIRTUAL_HEIGHT*scale;
         viewport = new Rectangle(crop.x, crop.y, w, h);
+	}
+
+	@Override
+	public void render(float delta) {
+		// TODO Auto-generated method stub
+		
 	}
 }

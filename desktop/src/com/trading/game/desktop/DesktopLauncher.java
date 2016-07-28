@@ -6,9 +6,11 @@ import com.trading.game.Game;
 
 public class DesktopLauncher {
 	public static void main (String[] arg) {
-		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.width = 1280;
-		config.height = 720;
-		new LwjglApplication(new Game(), config);
+		LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
+		cfg.width = 1280;
+		cfg.height = 720;
+		cfg.forceExit = true;  
+		cfg.vSyncEnabled = false;
+		new LwjglApplication(new Game(), cfg);
 	}
 }
