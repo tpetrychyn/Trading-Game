@@ -1,4 +1,4 @@
-package com.trading.game;
+package com.trading.networking.packets;
 
 import com.badlogic.gdx.math.Vector2;
 

@@ -1,7 +1,5 @@
 package com.trading.game;
 
-import java.util.Iterator;
-
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -12,7 +10,6 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -20,11 +17,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
+import com.trading.entities.WorldActor;
 
 public class Game extends ApplicationAdapter implements Screen, ApplicationListener {
 	
@@ -53,20 +50,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
     
     TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
-	
-	public class MyTextInputListener implements TextInputListener {
-		   @Override
-		   public void input (String text) {
-			   player.ip = text;
-		   }
-
-		   @Override
-		   public void canceled () {
-		   }
-		}
-	
-	
-	
+	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
 	
 	@Override
 	public void create () {
@@ -95,18 +79,25 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         camera.update();
         
         
+        
         font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
         
         chatbox = new ChatBox();
+        
         stage = new Stage();
+        //allocated first 100 actors to npcs
+		for (int i=0;i<100;i++) {
+			WorldActor w = new WorldActor(new Texture("male_idle.png"), -50, -100, world, i, 0.5f);
+			stage.addActor(w);
+		}
+		
+		//your player becomes 101
 		stage.addActor(player);
-		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
-			try {
-				Npc n = (Npc) i.next();
-				//stage.addActor(n);
-			} catch(Exception e) {
-				
-			}
+		
+		//then add actors up to 1000
+		for (int i=102;i<1000;i++) {
+			WorldActor w = new WorldActor(new Texture("male_idle.png"), -50, -100, world, i, 0.5f);
+			stage.addActor(w);
 		}
         Gdx.input.setInputProcessor(player);
 	}
@@ -115,7 +106,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		return camera;
 	}
 	
-	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
+	
 	
 	@Override
 	public void render () {
@@ -124,13 +115,9 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         Gdx.gl.glViewport((int) viewport.x, (int) viewport.y,
                           (int) viewport.width, (int) viewport.height);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		/*world.getWorld().step(1f/60f, 6, 2);
 		
-		camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
-		camera.update();
+		/*world.getWorld().step(1f/60f, 6, 2);*/
 		
-		world.Update(player, batch);
-		*/
 		stage.getCamera().position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
 		stage.getViewport().setCamera(camera);
 		mapRenderer.setView((OrthographicCamera) stage.getCamera());

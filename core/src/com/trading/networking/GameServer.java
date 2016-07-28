@@ -1,4 +1,4 @@
-package com.trading.game.server;
+package com.trading.networking;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -14,10 +14,11 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
+import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
@@ -25,13 +26,15 @@ import com.trading.entities.Npc;
 import com.trading.entities.Player;
 import com.trading.game.Game;
 import com.trading.game.GameWorld;
-import com.trading.game.NpcMovePacket;
-import com.trading.game.PlayerMovePacket;
+import com.trading.networking.packets.ClientRequest;
+import com.trading.networking.packets.NewConnection;
+import com.trading.networking.packets.NpcMovePacket;
+import com.trading.networking.packets.PlayerMovePacket;
 
 public class GameServer extends ApplicationAdapter implements ApplicationListener {
 	
-	Server server;
-	Stage stage;
+	static Server server;
+	static Stage stage;
 	GameWorld gameWorld;
 	TiledMap map;
 	Player players[];
@@ -40,11 +43,13 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 	BitmapFont font;
 	Batch debugBatch;
 	
-	Actor actors[];
+	IsometricTiledMapRenderer mapRenderer;
+	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
+	int connectedClients;
 	
 	@Override
 	public void create () {
-		
+		connectedClients = 0;
 		gameWorld = new GameWorld("Maps/map.tmx");
 		stage = new Stage();
 		debugBatch = new SpriteBatch();
@@ -53,18 +58,12 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		camera = new OrthographicCamera(Gdx.graphics.getWidth(),Gdx.graphics.
                 getHeight());
 		
-		actors = new Actor[200];
 		npcs = new NpcMovePacket[100];
 		for (int i=0;i<100;i++)
 			npcs[i] = new NpcMovePacket();
 		
-		players = new Player[100];
-		for (int i=0;i<100;i++) {
-			players[i] = new Player(gameWorld);
-			stage.addActor(players[i]);
-			actors[i] = players[i];
-		}
-			
+		
+			//first 100 actors are npcs
 		for(Iterator<Actor> i = gameWorld.getActors().iterator(); i.hasNext(); ) {
 			try {
 				Npc n = (Npc) i.next();
@@ -74,6 +73,16 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 			}
 		}
 		
+		// then add players
+		players = new Player[100];
+		for (int i=0;i<100;i++) {
+			players[i] = new Player(gameWorld);
+			stage.addActor(players[i]);
+		}
+		
+		map = new TmxMapLoader().load("Maps/map.tmx");
+		mapRenderer = new IsometricTiledMapRenderer(map);
+		
 		Game.stage = stage;
 		
 		camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
@@ -81,6 +90,8 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		
 		startServer();
 	}
+	
+	
 	
 	Connection connection;
 	@Override
@@ -90,13 +101,21 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		//stage.getCamera().translate(1, 0, 0);
 		stage.getViewport().setCamera(camera);
 		
+		
+		//stage.getCamera().position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
+		stage.getViewport().setCamera(camera);
+		mapRenderer.setView((OrthographicCamera) stage.getCamera());
+		mapRenderer.render(backgroundLayers);
+		
 		stage.act(Gdx.graphics.getDeltaTime());
 		stage.draw();
 		stage.setDebugAll(true);
 		
+		mapRenderer.render(foreground);
+		
 		debugBatch.begin();
 		font.setColor(Color.WHITE);
-		font.draw(debugBatch, (server == null) + " ", 50, 50);
+		font.draw(debugBatch, "Connected Clients: " + connectedClients, 50, 50);
 		debugBatch.end();
 	}	
 	
@@ -104,34 +123,61 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		server = new Server();
 	    server.start();
 	    try {
-			server.bind(54555, 54777);
+			server.bind(Network.PORT_TCP, Network.PORT_UDP);
 			System.out.println("Server started");
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	    
-	    Kryo kryo = server.getKryo();
-	    kryo.register(Vector2.class);
-	    kryo.register(PlayerMovePacket.class);
-	    //kryo.register(NpcMovePacket.class);
-	    //kryo.register(NpcMovePacket[].class);
+	    Network.register(server);
 	    
 	    server.addListener(new Listener() {
 	        public void received (Connection connection, Object object) {
-	           if (object instanceof PlayerMovePacket) {
-	        	   System.out.println("got packet");
+	        	if (object instanceof NewConnection) {
+	        		NewConnection res = (NewConnection)object;
+	        		((Player)stage.getActors().items[res.clientId+100]).setPosition(res.pos);
+	        		connectedClients++;
+	        	} else if (object instanceof PlayerMovePacket) {
 	              PlayerMovePacket request = (PlayerMovePacket)object;
 	              PlayerMovePacket packet = new PlayerMovePacket(request.pos, connection.getID());
-	              stage.getActors().items[connection.getID()].setPosition(packet.getPos().x, packet.getPos().y);
-	              
-	              
-	              // PlayerArray response = new PlayerArray();
+	              stage.getActors().items[connection.getID()+100].setPosition(packet.getPos().x, packet.getPos().y);
 	              server.sendToAllExceptTCP(0, packet);
-	              //server.sendToAllExceptTCP(0, npcs);
-	              //connection.sendTCP(response);
+	              
+	           } else if (object instanceof ClientRequest) {
+	        	   ClientRequest r = (ClientRequest)object;
+	        	   switch (r.request) {
+	        	   case getNpcs:
+	        		   for (int i=0;i<100;i++) {
+	 	            	  Npc n = (Npc) stage.getActors().items[i];
+	 	            	  if (n == null)
+	 	            		  return;
+	 	            	  npcs[i] = new NpcMovePacket(new Vector2(n.getX(), n.getY()), i);
+	 	            	  server.sendToAllExceptTCP(0, npcs[i]);
+	 	              }
+	 	              //server.sendToAllExceptTCP(0, npcs);
+	        		   break;
+				default:
+					break;
+	        	   }
 	           }
+	        }
+	        public void disconnected (Connection connection) {
+	        	connectedClients--;
 	        }
 	     });
 	}
+	
+	public static void updateActor(int id) {
+		Actor a = stage.getActors().items[id];
+		if (a==null)
+			return;
+		NpcMovePacket n = new NpcMovePacket();
+		n.pos = new Vector2(a.getX(), a.getY());
+		n.npcId = id;
+		server.sendToAllExceptTCP(0, n);
+	}
 }
+
+
+

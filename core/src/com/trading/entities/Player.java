@@ -16,14 +16,17 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
 import com.trading.game.GameWorld;
-import com.trading.game.NpcMovePacket;
-import com.trading.game.PlayerMovePacket;
+import com.trading.networking.Network;
+import com.trading.networking.packets.ClientRequest;
+import com.trading.networking.packets.NewConnection;
+import com.trading.networking.packets.NpcMovePacket;
+import com.trading.networking.packets.PlayerMovePacket;
+import com.trading.networking.packets.Requests;
 
 public class Player extends Actor implements InputProcessor {
 	
@@ -155,33 +158,14 @@ public class Player extends Actor implements InputProcessor {
         sr = new ShapeRenderer();
         players = new PlayerMovePacket[100];
         npcs = new Npc[100];
+        
 	}
-	
-	/*public void draw(SpriteBatch batch) {
-	
-		update(Gdx.graphics.getDeltaTime());
-		sprite = new Sprite(currentFrame);
-		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
-	}*/
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(getCurrentTexture());
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
-
-		for (int i=0;i<100;i++) {
-			if (players[i] != null && i != myId) {
-				System.out.println(players[i].clientID + " " + players[i].pos.x + " " + players[i].pos.y);
-				batch.draw(sprite, players[i].pos.x, players[i].pos.y, size().x, size().y);
-			}
-		}
-		for (int i=0;i<100;i++) {
-			if (npcs[i] != null) {
-				System.out.println(npcs[i].getX() + " " + npcs[i].getY());
-				batch.draw(npcs[i].sprite, npcs[i].getX(), npcs[i].getY(), size().x, size().y);
-			}
-		}
 	}
 	
 	
@@ -235,14 +219,56 @@ public class Player extends Actor implements InputProcessor {
 			p.pos.x = getX();
 			p.pos.y = getY();
 			p.clientID = 1;
-			//if (p.pos.x != oldPos.x || p.pos.y != oldPos.y)
-			client.sendTCP(p);
-			//System.out.println("sent packet");
+			if (p.pos.x != oldPos.x || p.pos.y != oldPos.y)
+				client.sendTCP(p);
         }
 	}
 	
 	public Vector2 getMousePosition() {
 		return new Vector2(mousePos.x, mousePos.y);
+	}
+	
+	public void connectToServer() {
+		client = new Client();
+	    client.start();
+	    try {
+			client.connect(5000, "localhost", Network.PORT_TCP, Network.PORT_UDP);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    
+	    Network.register(client);
+	    System.out.println("Connected to server");
+		NewConnection n = new NewConnection(client.getID(), new Vector2(getX(), getY()));
+		client.sendTCP(n);
+		myId = client.getID();
+	    
+	    client.addListener(new Listener() {
+	        public void received (Connection connection, Object object) {
+	           if (object instanceof PlayerMovePacket) {
+	        	  PlayerMovePacket response = (PlayerMovePacket)object;
+	        	  if (response.clientID != myId)
+	        	  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);
+	           } 
+	           else if (object instanceof NpcMovePacket[]) {
+	        	   NpcMovePacket[] response = (NpcMovePacket[])object;
+	        	   for (int i=0;i<100;i++) {
+	        		   System.out.println("got npcs");
+	        		   Game.stage.getActors().items[i].setPosition(response[i].pos.x, response[i].pos.y);
+	        	   }
+	           }
+	           else if (object instanceof NpcMovePacket) {
+	        	   NpcMovePacket response = (NpcMovePacket)object;
+	        	   NpcMovePacket n = new NpcMovePacket();
+	        	   n.npcId = response.npcId;
+	        	   n.pos = response.pos;
+	        	   Game.stage.getActors().items[n.npcId].setPosition(n.pos.x, n.pos.y);
+	           }
+	        }
+	        
+	     });
 	}
 
 	@Override
@@ -255,41 +281,23 @@ public class Player extends Actor implements InputProcessor {
 			isTyping = true;
 			Gdx.input.setInputProcessor(Game.chatbox);
 		}
+		
 		if (keycode == Input.Keys.NUM_3) {
-			client = new Client();
-		    client.start();
-		    try {
-				client.connect(5000, "localhost", 54555, 54777);
-				System.out.println("Connected to server");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		    
-		    Kryo kryo = client.getKryo();
-		    //kryo.register(NpcMovePacket.class);
-		    //kryo.register(NpcMovePacket[].class);
-		    kryo.register(PlayerMovePacket.class);
-		    kryo.register(Vector2.class);
-		    
-		    client.addListener(new Listener() {
-		        public void received (Connection connection, Object object) {
-		           if (object instanceof PlayerMovePacket) {
-		        	  PlayerMovePacket response = (PlayerMovePacket)object;
-		              players[response.clientID] = response;
-		              myId = client.getID();
-		           }
-		        }
-		        
-		     });
-		    
+			if (client != null)
+				return false;
+			connectToServer();
 		}
+		
 		if (keycode == Input.Keys.NUM_4) {
 			for (int i=0;i<100;i++) {
-				if (players[i] == null)
+				if (npcs[i] == null)
 					continue;
-				System.out.println(players[i].pos.x);
+				System.out.println(npcs[i].getX());
 			}
+		}
+		if (keycode == Input.Keys.NUM_5) {
+			ClientRequest c = new ClientRequest(Requests.getNpcs);
+			client.sendTCP(c);
 		}
 		if (keycode == Input.Keys.ESCAPE)
 			Gdx.app.exit();

@@ -60,7 +60,7 @@ public class GameWorld {
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
 		actors = new ArrayList<Actor>();
 		for (int i=0;i<100;i++) {
-			Npc npc = new Npc(new Texture("male_walk.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i, 0.5f);
+			Npc npc = new Npc(new Texture("male_idle.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i, 0.5f);
 			npc.startRandomWalk(5);
 			npc.name = generateName();
 			actors.add(npc);
