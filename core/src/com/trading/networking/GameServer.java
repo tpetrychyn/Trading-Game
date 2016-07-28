@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -77,6 +78,7 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		players = new Player[100];
 		for (int i=0;i<100;i++) {
 			players[i] = new Player(gameWorld);
+			players[i].setPosition(new Vector2(-50, -100));
 			stage.addActor(players[i]);
 		}
 		
@@ -119,6 +121,15 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		debugBatch.end();
 	}	
 	
+	//Split out player in to server and client versions to initalize on client side cause this works
+	public class Tester extends Actor {
+		
+		@Override
+		public void draw(Batch batch, float alpha) {
+			batch.draw(new Texture("male_idle.png"), 50, 50, 50, 50);
+		}
+	}
+	
 	public void startServer() {
 		server = new Server();
 	    server.start();
@@ -135,37 +146,89 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 	    server.addListener(new Listener() {
 	        public void received (Connection connection, Object object) {
 	        	if (object instanceof NewConnection) {
+	        		Tester t = new Tester();
+	        		stage.addActor(t);
 	        		NewConnection res = (NewConnection)object;
-	        		((Player)stage.getActors().items[res.clientId+100]).setPosition(res.pos);
-	        		connectedClients++;
+	        		newConnection(res, connection);
 	        	} else if (object instanceof PlayerMovePacket) {
 	              PlayerMovePacket request = (PlayerMovePacket)object;
 	              PlayerMovePacket packet = new PlayerMovePacket(request.pos, connection.getID());
 	              stage.getActors().items[connection.getID()+100].setPosition(packet.getPos().x, packet.getPos().y);
 	              server.sendToAllExceptTCP(0, packet);
 	              
-	           } else if (object instanceof ClientRequest) {
+	           } 
+	        	//Used when client asks the server for data without sending any
+	        	else if (object instanceof ClientRequest) {
 	        	   ClientRequest r = (ClientRequest)object;
-	        	   switch (r.request) {
-	        	   case getNpcs:
-	        		   for (int i=0;i<100;i++) {
-	 	            	  Npc n = (Npc) stage.getActors().items[i];
-	 	            	  if (n == null)
-	 	            		  return;
-	 	            	  npcs[i] = new NpcMovePacket(new Vector2(n.getX(), n.getY()), i);
-	 	            	  server.sendToAllExceptTCP(0, npcs[i]);
-	 	              }
-	 	              //server.sendToAllExceptTCP(0, npcs);
-	        		   break;
-				default:
-					break;
-	        	   }
+	        	   handleRequest(r);
 	           }
 	        }
-	        public void disconnected (Connection connection) {
-	        	connectedClients--;
+	        /*
+	        @Override
+	        public void connected(Connection connection) {
+	            handleConnection(connection);
+	        }
+
+	        @Override
+	        public void disconnected(Connection connection) {
+	        	handleDisconnect(connection);
+	        }
+
+	        @Override
+	        public void received(Connection connection, Object object) {
+	            handleRecieved(connection, object);
+	        }*/
+
+	        @Override
+	        public void idle(Connection connection) {
+	            super.idle(connection);
 	        }
 	     });
+	}
+	
+	void handleDisconnect(Connection c) {
+		((Player)stage.getActors().items[c.getID()+100]).setPosition(new Vector2(-50, -100));
+    	connectedClients--;
+	}
+	
+	void handleRequest(ClientRequest req) {
+		switch (req.request) {
+	 	   case getNpcs:
+	 		   for (int i=0;i<100;i++) {
+	          	  Npc n = (Npc) stage.getActors().items[i];
+	          	  if (n == null)
+	          		  return;
+	          	  npcs[i] = new NpcMovePacket(new Vector2(n.getX(), n.getY()), i);
+	          	  server.sendToAllExceptTCP(0, npcs[i]);
+	            }
+	            //server.sendToAllExceptTCP(0, npcs);
+	 		   break;
+			default:
+				break;
+		}
+	}
+	
+	//Handles when a new user connects
+	void newConnection(NewConnection conn, Connection c) {
+		((Player)stage.getActors().items[conn.clientId+100]).setPosition(conn.pos);
+		connectedClients++;
+		
+		//load npcs
+		for (int i=0;i<100;i++) {
+        	  Npc n = (Npc) stage.getActors().items[i];
+        	  if (n == null)
+        		  return;
+        	  npcs[i] = new NpcMovePacket(new Vector2(n.getX(), n.getY()), i);
+        	  server.sendToAllExceptTCP(0, npcs[i]);
+          }
+		//load players
+		for (int i=101;i<200;i++) {
+			if (i == c.getID())
+				return;
+			Actor a = stage.getActors().items[i];
+			PlayerMovePacket packet = new PlayerMovePacket(new Vector2(a.getX(), a.getY()), i-100);
+            server.sendToAllExceptTCP(0, packet);
+		}
 	}
 	
 	public static void updateActor(int id) {

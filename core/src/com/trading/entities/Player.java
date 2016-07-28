@@ -133,7 +133,7 @@ public class Player extends Actor implements InputProcessor {
     PlayerMovePacket players[];
     Npc npcs[];
 	Client client;
-	int myId = 0;
+	public int myId = 0;
 	
 	public Player(GameWorld world) {
 		this.world = world;
