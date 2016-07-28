@@ -6,6 +6,8 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextArea;
@@ -18,31 +20,40 @@ public class ChatBox extends Actor implements InputProcessor{
     float height;
     public boolean showTextEnter = false;
     public boolean shouldFade = false;
-    public float fade = 10;
-    
+    public float fade = 0;
     
     public ChatBox() {
-    	/*Skin skin = new Skin();
-skin.add(
-        "background",
-        new NinePatch(this.game.manager.get("hud/ninepatchframe.png",
-                Texture.class), 5, 5, 5, 5));
-skin.add("cursor", this.game.manager.get("data/cursor.png"));*/
     	Skin skin = new Skin();
-    	skin.add("cursor", new Texture("male_walk.png"));
+    	//dunno how this works but the int values seem to be padding
+    	NinePatch bg = new NinePatch(new Texture("chatbox.png"), 5,5,5,5);
+    	skin.add("background", bg);
     	
+    	TextureAtlas atlas;
+    	atlas = new TextureAtlas(Gdx.files.internal("uiskin.atlas"));
+    	
+    	skin.add("cursor", atlas.findRegion("cursor"));
+    	
+    	Skin skin2 = new Skin(Gdx.files.internal("uiskin.json"));
+    	
+    	//The field that the player types their text in to
     	TextFieldStyle t = new TextFieldStyle();
     	t.font = new BitmapFont();
     	t.fontColor = Color.RED;
-    	t.cursor = skin.newDrawable("cursor", Color.GREEN);
-    	t.cursor.setMinWidth(2f);
-    	//t.background = skin.getDrawable("background");
-        field = new TextField("", t);
+    	//t.cursor = skin.getDrawable("cursor");
+        field = new TextField("", skin2);
+        field.setWidth(250);
+        field.setMaxLength(30);
         field.setPosition(100, 100);
-       
-        textArea = new TextArea("", t);
+        
+        //the area that the chat messages are displayed
+        TextFieldStyle box = new TextFieldStyle();
+        box.background = skin.getDrawable("background");
+        box.font = new BitmapFont();
+        box.fontColor = Color.GREEN;
+        textArea = new TextArea("", skin2);
+        textArea.setWidth(300);
+        textArea.setHeight(100);
         textArea.setPosition(100, 120);
-        height = 20;
         
     }
 
@@ -53,15 +64,15 @@ skin.add("cursor", this.game.manager.get("data/cursor.png"));*/
 		if (keycode == Input.Keys.ENTER) {
 			Game.getPlayer().isTyping = false;
 			Gdx.input.setInputProcessor(Game.getPlayer());
-			if (height < 100)
-				height += 20; {
-				textArea.setHeight(height);
-			}
 			textArea.appendText("Player: " + field.getText() + "\n");
 			field.setText("");
 			fade = 10;
 			shouldFade = true;
 			showTextEnter = false;
+		}
+		
+		if (keycode == Input.Keys.BACK) {
+			//field.
 		}
 		return false;
 	}

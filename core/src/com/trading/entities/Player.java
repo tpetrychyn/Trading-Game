@@ -8,6 +8,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -87,7 +88,7 @@ public class Player extends Actor implements InputProcessor {
     }
     
     public Vector2 size() {
-    	return new Vector2(currentFrame.getRegionWidth() * 0.5f, currentFrame.getRegionHeight() * 0.5f);
+    	return new Vector2(currentFrame.getRegionWidth(), currentFrame.getRegionHeight());
     }
     
     public TextureRegion getCurrentTexture() {
@@ -120,10 +121,8 @@ public class Player extends Actor implements InputProcessor {
     
     public Sprite sprite;
 	public Player(GameWorld world) {
-		
 		this.world = world;
-		//super(new Texture("badlogic.jpg"));
-		Texture t = new Texture("male_idle.png");
+		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);
 		// Center the sprite in the top/middle of the screen
         sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
@@ -139,20 +138,27 @@ public class Player extends Actor implements InputProcessor {
         stoppedAnimation[2] = a.addAnimation(18, 1);
         stoppedAnimation[3] = a.addAnimation(27, 1);
         
-        sr = new ShapeRenderer();
+        currentFrame = getCurrentTexture();
         
+        sr = new ShapeRenderer();
 	}
 	
 	public void draw(SpriteBatch batch) {
 		update(Gdx.graphics.getDeltaTime());
 		sprite = new Sprite(currentFrame);
-		
+		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
+	}
+	
+	@Override
+	public void draw(Batch batch, float alpha) {
+		update(Gdx.graphics.getDeltaTime());
+		sprite = new Sprite(getCurrentTexture());
 		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
 	}
 	
 	
 	void update(float deltaTime) {
-		stateTime += Gdx.graphics.getDeltaTime();
+		stateTime += deltaTime;
 		if (isTyping)
 			return;
 		Vector2 playerVelocity = new Vector2();

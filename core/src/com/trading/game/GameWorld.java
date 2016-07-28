@@ -88,10 +88,16 @@ public class GameWorld {
 			} catch(Exception e) {
 				
 			}
-			
 		}
 		batch.end();
+		if (Game.debug) {
+			renderDebug();
+		}
 		
+		mapRenderer.render(foreground);
+	}
+	
+	void renderDebug() {
 		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
 			try {
 				Actor n = i.next();
@@ -104,7 +110,6 @@ public class GameWorld {
 				
 			}
 		}
-		mapRenderer.render(foreground);
 	}
 	
 	public List<Actor> getActors() {

@@ -1,21 +1,17 @@
 package com.trading.entities;
 
-import java.util.Iterator;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
-import com.trading.game.Game;
 import com.trading.game.GameWorld;
 import com.trading.game.Util;
 
@@ -41,6 +37,8 @@ public class Npc extends Actor {
 		this.id = id;
 		this.scale = scale;
 		font = new BitmapFont();
+		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+
 		sprite = new Sprite(image);
 		this.world = world;
 		world.setWorldPosition(this, new Vector2(x,y));
@@ -111,7 +109,8 @@ public class Npc extends Actor {
 		setHeight(sprite.getHeight()*scale);
 		batch.draw(sprite, getX(), getY(), Size().x, Size().y);
 		font.setColor(Color.WHITE);
-		font.draw(batch, name, getX() + Size().x/2, getY()+Size().y + 10);
+		font.getData().setScale(0.5f);
+		font.draw(batch, name, getX() + Size().x/2 - name.length()*7/2, getY()+Size().y + 10);
 	}
 	
 	public void setBounds(int minX, int minY, int maxX, int maxY) {
