@@ -22,6 +22,8 @@ allprojects {
         box2DLightsVersion = '1.4'
         ashleyVersion = '1.7.0'
         aiVersion = '1.8.0'
+        kryoVersion = '2.20'
+        kryonetVersion = '2.21'
     }
 
     repositories {
@@ -41,6 +43,8 @@ project(":desktop") {
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        compile "com.esotericsoftware.kryo:Kryo:$kryoVersion"
+		compile "com.esotericsoftware.kryonet:$kryonetVersion"
     }
 }
 

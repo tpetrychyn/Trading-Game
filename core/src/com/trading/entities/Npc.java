@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -69,6 +70,49 @@ public class Npc extends Actor {
 		randomWalk.cancel();
 		velocity.x = 0;
 		velocity.y = 0;
+	}
+	
+	@Override
+	public void draw(Batch batch, float alpha) {
+		stateTime += Gdx.graphics.getDeltaTime();
+		
+		Vector2 oldPos = new Vector2(getX(), getY());
+        setX(getX() + velocity.x * Gdx.graphics.getDeltaTime());
+        setY(getY() + velocity.y * Gdx.graphics.getDeltaTime());
+        
+        Vector2 newPos = new Vector2(getX(), getY());
+        if (world.getWorldPosition(newPos).x < 0 || world.getWorldPosition(newPos).y < 0.2
+        		|| world.getWorldPosition(newPos).x > 99.8 || world.getWorldPosition(newPos).y > 100
+        		|| world.isCellBlocked(world.getWorldPosition(newPos).x, world.getWorldPosition(newPos).y)
+        		|| world.actorCollision(this)){
+        	setY(oldPos.y);
+        	setX(oldPos.x);
+        	velocity.x = 0f;
+    		velocity.y = 0f;
+        }
+        
+        if (maxBounds != null && minBounds != null) {
+        	if (world.getWorldPosition(newPos).x < minBounds.x || world.getWorldPosition(newPos).y < minBounds.y
+        			|| world.getWorldPosition(newPos).x > maxBounds.x || world.getWorldPosition(newPos).y > maxBounds.y) {
+        		setX(oldPos.x);
+        		setY(oldPos.y);
+        		velocity.x = 0f;
+        		velocity.y = 0f;
+        	}		
+        }
+        
+        //if npc is moving use an animated sprite, if not use the static sprites
+        if (Math.abs(velocity.x) > 0 || Math.abs(velocity.y) > 0)
+        	sprite = new Sprite(walkAnimations[direction.getValue()].getKeyFrame(stateTime, true));
+        else
+        	sprite = new Sprite(walkAnimations[direction.getValue() + 4].getKeyFrame(stateTime, true));
+        
+        setWidth(sprite.getWidth()*scale);
+		setHeight(sprite.getHeight()*scale);
+		batch.draw(sprite, getX(), getY(), Size().x, Size().y);
+		font.setColor(Color.WHITE);
+		font.getData().setScale(0.5f);
+		font.draw(batch, name, getX() + Size().x/2 - name.length()*7/2, getY()+Size().y + 10);
 	}
 	
 	public void Draw(SpriteBatch batch) {
