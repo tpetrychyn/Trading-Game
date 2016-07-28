@@ -21,9 +21,9 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
-import com.trading.game.GameServer;
-import com.trading.game.PlayerMovePacket;
 import com.trading.game.GameWorld;
+import com.trading.game.NpcMovePacket;
+import com.trading.game.PlayerMovePacket;
 
 public class Player extends Actor implements InputProcessor {
 	
@@ -128,8 +128,10 @@ public class Player extends Actor implements InputProcessor {
     PlayerMovePacket p;
     public Sprite sprite;
     PlayerMovePacket players[];
+    Npc npcs[];
 	Client client;
 	int myId = 0;
+	
 	public Player(GameWorld world) {
 		this.world = world;
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
@@ -152,6 +154,7 @@ public class Player extends Actor implements InputProcessor {
         
         sr = new ShapeRenderer();
         players = new PlayerMovePacket[100];
+        npcs = new Npc[100];
 	}
 	
 	/*public void draw(SpriteBatch batch) {
@@ -171,6 +174,12 @@ public class Player extends Actor implements InputProcessor {
 			if (players[i] != null && i != myId) {
 				System.out.println(players[i].clientID + " " + players[i].pos.x + " " + players[i].pos.y);
 				batch.draw(sprite, players[i].pos.x, players[i].pos.y, size().x, size().y);
+			}
+		}
+		for (int i=0;i<100;i++) {
+			if (npcs[i] != null) {
+				System.out.println(npcs[i].getX() + " " + npcs[i].getY());
+				batch.draw(npcs[i].sprite, npcs[i].getX(), npcs[i].getY(), size().x, size().y);
 			}
 		}
 	}
@@ -221,11 +230,14 @@ public class Player extends Actor implements InputProcessor {
         setWidth(size().x);
         setHeight(size().y);
         
+        
         if (client != null && client.isConnected()) {
 			p.pos.x = getX();
 			p.pos.y = getY();
-			//if (p.pos.x != oldPos.x && p.pos.y != oldPos.y)
-				client.sendTCP(p);
+			p.clientID = 1;
+			//if (p.pos.x != oldPos.x || p.pos.y != oldPos.y)
+			client.sendTCP(p);
+			//System.out.println("sent packet");
         }
 	}
 	
@@ -243,19 +255,20 @@ public class Player extends Actor implements InputProcessor {
 			isTyping = true;
 			Gdx.input.setInputProcessor(Game.chatbox);
 		}
-		if (keycode == Input.Keys.NUM_2) {
-			GameServer g = new GameServer();
-		}
 		if (keycode == Input.Keys.NUM_3) {
 			client = new Client();
 		    client.start();
 		    try {
-				client.connect(5000, ip, 54555, 54777);
+				client.connect(5000, "localhost", 54555, 54777);
+				System.out.println("Connected to server");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		    
 		    Kryo kryo = client.getKryo();
+		    //kryo.register(NpcMovePacket.class);
+		    //kryo.register(NpcMovePacket[].class);
 		    kryo.register(PlayerMovePacket.class);
 		    kryo.register(Vector2.class);
 		    
@@ -267,7 +280,9 @@ public class Player extends Actor implements InputProcessor {
 		              myId = client.getID();
 		           }
 		        }
+		        
 		     });
+		    
 		}
 		if (keycode == Input.Keys.NUM_4) {
 			for (int i=0;i<100;i++) {

@@ -49,15 +49,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
     
     public static OrthographicCamera camera;
     
-    private Stage stage;
-    
-    public class MyActor extends Actor {
-        Texture texture = new Texture(Gdx.files.internal("male_idle.png"));
-        @Override
-        public void draw(Batch batch, float alpha){
-            batch.draw(texture,0,0);
-        }
-    }
+    public static Stage stage;
     
     TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
@@ -79,8 +71,8 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	@Override
 	public void create () {
 		
-		MyTextInputListener listener = new MyTextInputListener();
-		Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
+		//MyTextInputListener listener = new MyTextInputListener();
+		//Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
 		
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();
@@ -111,7 +103,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		for(Iterator<Actor> i = world.getActors().iterator(); i.hasNext(); ) {
 			try {
 				Npc n = (Npc) i.next();
-				stage.addActor(n);
+				//stage.addActor(n);
 			} catch(Exception e) {
 				
 			}

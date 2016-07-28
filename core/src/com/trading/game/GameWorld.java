@@ -72,45 +72,6 @@ public class GameWorld {
 		actors.add(p);
 	}
 	
-	/*public void Update(Player player, SpriteBatch batch) {
-		mapRenderer.setView(Game.getCamera());
-		mapRenderer.render(backgroundLayers);
-		
-		batch.setProjectionMatrix(Game.getCamera().combined);
-		
-		batch.begin();
-		player.draw(batch);
-		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
-			try {
-				Npc n = (Npc) i.next();
-				n.Draw(batch);
-			} catch(Exception e) {
-				
-			}
-		}
-		batch.end();
-		if (Game.debug) {
-			renderDebug();
-		}
-		
-		mapRenderer.render(foreground);
-	}
-	
-	void renderDebug() {
-		for(Iterator<Actor> i = actors.iterator(); i.hasNext(); ) {
-			try {
-				Actor n = i.next();
-				sr.setProjectionMatrix(Game.getCamera().combined);
-				sr.begin(ShapeType.Line);
-				sr.setColor(new Color(0,0,1,0));
-				sr.rect(n.getX(), n.getY(), n.getWidth(), n.getHeight());
-				sr.end();
-			} catch(Exception e) {
-				
-			}
-		}
-	}*/
-	
 	public List<Actor> getActors() {
 		return actors;
 	}
@@ -159,7 +120,7 @@ public class GameWorld {
     }
 	
 	public boolean actorCollision(Actor self) {
-		for(Iterator<Actor> i = Game.getPlayer().getStage().getActors().iterator(); i.hasNext(); ) {
+		for(Iterator<Actor> i = Game.stage.getActors().iterator(); i.hasNext(); ) {
 		    Actor a = i.next();
 		    if (a.hashCode() == self.hashCode())
 		    	continue;

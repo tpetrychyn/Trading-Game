@@ -71,6 +71,8 @@ project(":server") {
         compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
         compile "com.badlogicgames.gdx:gdx-box2d-platform:$gdxVersion:natives-desktop"
+        compile "com.esotericsoftware.kryo:Kryo:$kryoVersion"
+		compile "com.esotericsoftware.kryonet:$kryonetVersion"
     }
 }
 
