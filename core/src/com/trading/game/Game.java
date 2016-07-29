@@ -3,7 +3,6 @@ package com.trading.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -17,13 +16,11 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
 import com.trading.entities.PlayerController;
-import com.trading.entities.WorldActor;
 import com.trading.networking.GameWorld;
 
 public class Game extends ApplicationAdapter implements Screen, ApplicationListener {
@@ -86,22 +83,24 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         chatbox = new ChatBox();
         
         stage = new Stage();
-        //allocated first 100 actors to npcs
+        /*//allocated first 100 actors to npcs
 		for (int i=0;i<100;i++) {
 			Npc w = new Npc(new Texture("male_idle.png"), 10, 10, world, i, 0.5f);
 			stage.addActor(w);
 		}
 		
 		//your player becomes 100
-		stage.addActor(player);
+		
 		
 		//fill the stage will empty actors
 		for (int i=101;i<1000;i++) {
 			Player p = new Player(world);
 			p.setPosition(new Vector2(-50, -100));
 			stage.addActor(p);
-		}
+		}*/
 		
+        stage.addActor(player);
+        
         Gdx.input.setInputProcessor(player);
 	}
 	

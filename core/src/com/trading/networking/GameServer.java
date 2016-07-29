@@ -26,7 +26,6 @@ import com.esotericsoftware.kryonet.Server;
 import com.trading.entities.Npc;
 import com.trading.entities.NpcController;
 import com.trading.entities.Player;
-import com.trading.entities.PlayerData;
 import com.trading.game.Game;
 import com.trading.networking.packets.ClientRequest;
 import com.trading.networking.packets.Disconnection;
@@ -36,7 +35,7 @@ import com.trading.networking.packets.PlayerMovePacket;
 
 public class GameServer extends ApplicationAdapter implements ApplicationListener {
 	
-	static Server server;
+	public static Server server;
 	static Stage stage;
 	GameWorld gameWorld;
 	TiledMap map;

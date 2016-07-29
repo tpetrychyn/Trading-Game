@@ -17,12 +17,14 @@ import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
 import com.trading.networking.GameWorld;
 import com.trading.networking.Network;
-import com.trading.networking.packets.ClientRequest;
+import models.ClientRequest;
+import models.InstancePacket;
+
 import com.trading.networking.packets.Disconnection;
-import com.trading.networking.packets.NewConnection;
 import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerMovePacket;
-import com.trading.networking.packets.Requests;
+
+import models.Requests;
 
 public class PlayerController extends Player implements InputProcessor {
 	
@@ -123,8 +125,15 @@ public class PlayerController extends Player implements InputProcessor {
 			}
 		}
 		if (keycode == Input.Keys.NUM_5) {
-			ClientRequest c = new ClientRequest(Requests.getNpcs);
-			client.sendTCP(c);
+			InstancePacket in = new InstancePacket();
+			in.id = 1;
+			client.sendTCP(in);
+		}
+		
+		if (keycode == Input.Keys.NUM_6) {
+			InstancePacket in = new InstancePacket();
+			in.id = 2;
+			client.sendTCP(in);
 		}
 		if (keycode == Input.Keys.ESCAPE)
 			Gdx.app.exit();

@@ -7,7 +7,7 @@ public class ClientRequest {
 		
 	}
 	
-	public ClientRequest(Requests request) {
-		this.request = request;
+	public ClientRequest(Requests getinstance) {
+		this.request = getinstance;
 	}
 }
