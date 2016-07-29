@@ -28,4 +28,11 @@ public class Util {
 		tempPt.y = (pt.y - pt.x) * 16;
 		return(tempPt);
 	}
+	
+	public static Vector2 getTileCoordinates(Vector2 pt, float tileHeight) {
+		  Vector2 tempPt = new Vector2(0, 0);
+		  tempPt.x = pt.x / tileHeight / 2;
+		  tempPt.y = pt.y / tileHeight;
+		  return(tempPt);
+	}
 }

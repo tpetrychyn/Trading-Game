@@ -1,4 +1,4 @@
-package com.trading.game;
+package com.trading.networking;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -23,6 +23,8 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
+import com.trading.game.Game;
+import com.trading.game.Util;
 
 public class GameWorld {
 	

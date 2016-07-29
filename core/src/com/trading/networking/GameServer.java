@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
@@ -25,8 +26,8 @@ import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
+import com.trading.entities.WorldActor;
 import com.trading.game.Game;
-import com.trading.game.GameWorld;
 import com.trading.networking.packets.ClientRequest;
 import com.trading.networking.packets.NewConnection;
 import com.trading.networking.packets.NpcMovePacket;
@@ -124,14 +125,17 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 	//Split out player in to server and client versions to initalize on client side cause this works
 	public class Tester extends Actor {
 		
+		//Sprite s;
+		public Tester() {
+		}
 		@Override
 		public void draw(Batch batch, float alpha) {
-			batch.draw(new Texture("male_idle.png"), 50, 50, 50, 50);
+			batch.draw(new Texture("male_walk.png"), 50, 50, 50, 50);
 		}
 	}
 	
 	public void startServer() {
-		server = new Server();
+		server = new Server(20000, 10000);
 	    server.start();
 	    try {
 			server.bind(Network.PORT_TCP, Network.PORT_UDP);
@@ -144,10 +148,20 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 	    Network.register(server);
 	    
 	    server.addListener(new Listener() {
+	    	
 	        public void received (Connection connection, Object object) {
+	        	
 	        	if (object instanceof NewConnection) {
-	        		Tester t = new Tester();
-	        		stage.addActor(t);
+	        		/*
+	        		Gdx.app.postRunnable(new Runnable() {
+	        	         @Override
+	        	         public void run() {
+	        	            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
+	        	        	 Npc a = new Npc(gameWorld);
+	     	        		stage.addActor(a);
+	        	         }
+	        	      });*/
+	        		
 	        		NewConnection res = (NewConnection)object;
 	        		newConnection(res, connection);
 	        	} else if (object instanceof PlayerMovePacket) {

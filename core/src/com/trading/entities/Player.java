@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -20,7 +19,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
-import com.trading.game.GameWorld;
+import com.trading.networking.GameWorld;
 import com.trading.networking.Network;
 import com.trading.networking.packets.ClientRequest;
 import com.trading.networking.packets.NewConnection;
@@ -28,9 +27,8 @@ import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerMovePacket;
 import com.trading.networking.packets.Requests;
 
-public class Player extends Actor implements InputProcessor {
+public class Player extends WorldActor implements InputProcessor {
 	
-	ShapeRenderer sr;
 	public boolean isTyping = false;
 	
     Vector3 mousePos = new Vector3(0, 0, 0);
@@ -38,11 +36,13 @@ public class Player extends Actor implements InputProcessor {
     
     float playerSpeed = 200f;
     public boolean isMoving = false;
-    Direction direction = Direction.NORTH;
     
-    Animation walkNorthAnimation, walkWestAnimation, walkSouthAnimation, walkEastAnimation;
-    Animation[] stoppedAnimation = new Animation[4];
-    TextureRegion currentFrame;
+    PlayerMovePacket p;
+    PlayerMovePacket players[];
+    Npc npcs[];
+	Client client;
+	public int myId = 0;
+    
     float stateTime = 0;
     
     public float getSpeed() {
@@ -57,28 +57,7 @@ public class Player extends Actor implements InputProcessor {
     	Vector2 pos = new Vector2(getX(), getY());
 		return pos;
     }
-	
-	Vector2 twoDToIso(Vector2 pt) {
-		  Vector2 tempPt = new Vector2(0,0);
-		  tempPt.x = pt.x + 0.5f - pt.y;
-		  tempPt.y = pt.x + pt.y;
-		  return(tempPt);
-	}
-	
-	Vector2 isoToTwoD(Vector2 pt) {
-		Vector2 tempPt = new Vector2(0,0);
-		tempPt.x = (pt.x + ((pt.y-pt.x)/2)) * 64;
-		tempPt.y = (pt.y - pt.x) * 16;
-		return(tempPt);
-	}
-	
-	Vector2 getTileCoordinates(Vector2 pt, float tileHeight) {
-		  Vector2 tempPt = new Vector2(0, 0);
-		  tempPt.x = pt.x / tileHeight / 2;
-		  tempPt.y = pt.y / tileHeight;
-		  return(tempPt);
-	}
-	
+    
     public Vector2 getWorldPosition() {
     	return world.getWorldPosition(getPosition());
     }
@@ -96,76 +75,51 @@ public class Player extends Actor implements InputProcessor {
     	return direction;
     }
     
-    public Vector2 size() {
-    	return new Vector2(currentFrame.getRegionWidth() * 0.5f, currentFrame.getRegionHeight() * 0.5f);
-    }
-    
-    public TextureRegion getCurrentTexture() {
-    	
-		switch(direction) {
-    	case NORTH:
-    		currentFrame = walkNorthAnimation.getKeyFrame(stateTime,true);
-    		break;
-    	case WEST:
-    		currentFrame = walkWestAnimation.getKeyFrame(stateTime,true);
-    		break;
-    	case SOUTH:
-    		currentFrame = walkSouthAnimation.getKeyFrame(stateTime,true);
-    		break;
-    	case EAST:
-    		currentFrame = walkEastAnimation.getKeyFrame(stateTime,true);
-    		break;
-    	}
-    	
-    	if (!isMoving)
-    		currentFrame = stoppedAnimation[direction.getValue()].getKeyFrame(stateTime);
-    	
-    	return currentFrame;
-    }
-    
     public void setPosition(Vector2 transform) {
     	setX(transform.x);
     	setY(transform.y);
     }
-    
-    PlayerMovePacket p;
-    public Sprite sprite;
-    PlayerMovePacket players[];
-    Npc npcs[];
-	Client client;
-	public int myId = 0;
 	
 	public Player(GameWorld world) {
 		this.world = world;
+		
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);
 		// Center the sprite in the top/middle of the screen
         sprite.setPosition(Gdx.graphics.getWidth() / 2 - sprite.getWidth() / 2,
                 Gdx.graphics.getHeight() / 2);
         p = new PlayerMovePacket();
-        Animator a = new Animator(9, 4, "male_walk.png");
-        walkNorthAnimation = a.addAnimation(1, 7);
-        walkWestAnimation = a.addAnimation(10, 7);
-        walkSouthAnimation = a.addAnimation(19, 7);
-        walkEastAnimation = a.addAnimation(28, 7);
-        stoppedAnimation[0] = a.addAnimation(0, 1);
-        stoppedAnimation[1] = a.addAnimation(9, 1);
-        stoppedAnimation[2] = a.addAnimation(18, 1);
-        stoppedAnimation[3] = a.addAnimation(27, 1);
+        setScale(0.5f);
         
-        currentFrame = getCurrentTexture();
+		walkAnimations = new Animation[8];
+		Animator a = new Animator(9, 4, "male_walk.png");
+        walkAnimations[0] = a.addAnimation(1, 7);
+        walkAnimations[1] = a.addAnimation(10, 7);
+        walkAnimations[2] = a.addAnimation(19, 7);
+        walkAnimations[3] = a.addAnimation(28, 7);
+
+        walkAnimations[4] = a.addAnimation(0, 1);
+        walkAnimations[5] = a.addAnimation(9, 1);
+        walkAnimations[6] = a.addAnimation(18, 1);
+        walkAnimations[7] = a.addAnimation(27, 1);
         
-        sr = new ShapeRenderer();
         players = new PlayerMovePacket[100];
         npcs = new Npc[100];
-        
 	}
+	
+	public TextureRegion getCurrentTexture(float st) {
+    	if (!isMoving)
+    		return walkAnimations[direction.getValue() + 4].getKeyFrame(st);
+    	
+    	return walkAnimations[direction.getValue()].getKeyFrame(st, true);
+    		
+    }
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
 		update(Gdx.graphics.getDeltaTime());
-		sprite = new Sprite(getCurrentTexture());
-		batch.draw(sprite, getPosition().x, getPosition().y, size().x, size().y);
+		sprite = new Sprite(getCurrentTexture(stateTime));
+		batch.draw(sprite, getPosition().x, getPosition().y, getWidth(), getHeight());
 	}
 	
 	
@@ -211,9 +165,6 @@ public class Player extends Actor implements InputProcessor {
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
-        setWidth(size().x);
-        setHeight(size().y);
-        
         
         if (client != null && client.isConnected()) {
 			p.pos.x = getX();
@@ -229,7 +180,7 @@ public class Player extends Actor implements InputProcessor {
 	}
 	
 	public void connectToServer() {
-		client = new Client();
+		client = new Client(20000, 10000);
 	    client.start();
 	    try {
 			client.connect(5000, "localhost", Network.PORT_TCP, Network.PORT_UDP);
@@ -249,8 +200,8 @@ public class Player extends Actor implements InputProcessor {
 	        public void received (Connection connection, Object object) {
 	           if (object instanceof PlayerMovePacket) {
 	        	  PlayerMovePacket response = (PlayerMovePacket)object;
-	        	  if (response.clientID != myId)
-	        	  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);
+	        	  if (response.clientID != connection.getID())
+	        		  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);
 	           } 
 	           else if (object instanceof NpcMovePacket[]) {
 	        	   NpcMovePacket[] response = (NpcMovePacket[])object;

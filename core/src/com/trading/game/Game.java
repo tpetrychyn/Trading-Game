@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
 import com.trading.entities.WorldActor;
+import com.trading.networking.GameWorld;
 
 public class Game extends ApplicationAdapter implements Screen, ApplicationListener {
 	
@@ -87,7 +88,9 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         stage = new Stage();
         //allocated first 100 actors to npcs
 		for (int i=0;i<100;i++) {
-			WorldActor w = new WorldActor(new Texture("male_idle.png"), -50, -100, world, i, 0.5f);
+			Npc w = new Npc(world);
+			w.setPosition(10, 10);
+			//WorldActor w = new WorldActor(new Texture("male_idle.png"), 10, 10, world, i, 0.5f);
 			stage.addActor(w);
 		}
 		
@@ -95,7 +98,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		stage.addActor(player);
 		
 		//then add actors up to 1000
-		for (int i=102;i<1000;i++) {
+		for (int i=102;i<202;i++) {
 			WorldActor w = new WorldActor(new Texture("male_idle.png"), -50, -100, world, i, 0.5f);
 			stage.addActor(w);
 		}

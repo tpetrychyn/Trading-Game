@@ -6,10 +6,11 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer.Task;
-import com.trading.game.GameWorld;
+import com.trading.networking.GameWorld;
 
 public class WorldActor extends Actor {
 
@@ -24,35 +25,21 @@ public class WorldActor extends Actor {
 	Direction direction = Direction.SOUTH;
 	public int id;
 	public String name;
-	BitmapFont font;
+	
+	public boolean isMoving = false;
 	
 	public WorldActor() {
 		
-		this.id = -1;
-		font = new BitmapFont();
-		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
-
-		sprite = new Sprite(new Texture("male_idle.png"));
-		setPosition(-100,-100);
+	}
+	
+	public WorldActor(Class type) {
 		
-		walkAnimations = new Animation[8];
-		Animator a = new Animator(9, 4, "male_walk.png");
-        walkAnimations[0] = a.addAnimation(1, 7);
-        walkAnimations[1] = a.addAnimation(10, 7);
-        walkAnimations[2] = a.addAnimation(19, 7);
-        walkAnimations[3] = a.addAnimation(28, 7);
-
-        walkAnimations[4] = a.addAnimation(0, 1);
-        walkAnimations[5] = a.addAnimation(9, 1);
-        walkAnimations[6] = a.addAnimation(18, 1);
-        walkAnimations[7] = a.addAnimation(27, 1);
+		this.id = -1;
+		setPosition(-100,-100);
 	}
 	
 	public WorldActor(Texture image, float x, float y, GameWorld world, int id, float scale) {
 		this.id = id;
-		
-		font = new BitmapFont();
-		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 
 		sprite = new Sprite(image);
 		this.world = world;
@@ -69,7 +56,7 @@ public class WorldActor extends Actor {
         walkAnimations[6] = a.addAnimation(18, 1);
         walkAnimations[7] = a.addAnimation(27, 1);
         
-        setScale(scale);
+        //setScale(scale);
 	}
 	
 	public void setScale(float scale) {
