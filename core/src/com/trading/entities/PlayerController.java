@@ -208,22 +208,23 @@ public class PlayerController extends Player implements InputProcessor {
 	    
 	    Network.register(client);
 	    System.out.println("Connected to server");
-		NewConnection n = new NewConnection(client.getID(), new Vector2(getX(), getY()));
-		client.sendTCP(n);
+	    PlayerData p = new PlayerData(getPosition(), client.getID(), 100, 100);
+	    client.sendUDP(p);
+		//NewConnection n = new NewConnection(client.getID(), new Vector2(getX(), getY()));
+		//client.sendTCP(n);
+		//playerData.pId = client.getID();
 	    
 	    client.addListener(new Listener() {
 	        public void received (Connection connection, Object object) {
 	           if (object instanceof PlayerMovePacket) {
 	        	  PlayerMovePacket response = (PlayerMovePacket)object;
 	        	  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);  
-	           } 
-	           else if (object instanceof NpcMovePacket[]) {
+	           } else if (object instanceof NpcMovePacket[]) {
 	        	   NpcMovePacket[] response = (NpcMovePacket[])object;
 	        	   for (int i=0;i<100;i++) {
 	        		   Game.stage.getActors().items[i].setPosition(response[i].x, response[i].y);
 	        	   }
-	           }
-	           else if (object instanceof NpcMovePacket) {
+	           } else if (object instanceof NpcMovePacket) {
 	        	   NpcMovePacket response = (NpcMovePacket)object;
 	        	   NpcMovePacket n = new NpcMovePacket();
 	        	   n.npcId = response.npcId;
@@ -231,10 +232,15 @@ public class PlayerController extends Player implements InputProcessor {
 	        	   n.y = response.y;
 	        	   Game.stage.getActors().items[n.npcId].setPosition(n.x, n.y);
 	        	   Game.stage.getActors().items[n.npcId].setName(response.name);
-	           }else if (object instanceof Disconnection) {
+	        	   System.out.println(n.npcId);
+	           } else if (object instanceof Disconnection) {
 	        	   Disconnection disc = (Disconnection)object;
 	        	   System.out.println("disconnection " + (disc.pId+100));
 	        	   Game.stage.getActors().items[disc.pId+100].setPosition(-50, -100);
+	           } else if (object instanceof PlayerData) {
+	        	   PlayerData pd = (PlayerData)object;
+	        	   System.out.println("got playerdata " + pd.pId + " health " + pd.health + " changing " + (pd.pId));
+	        	   ((Player) Game.stage.getActors().items[pd.pId]).playerData = pd;
 	           }
 	        }
 	        

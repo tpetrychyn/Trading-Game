@@ -20,14 +20,13 @@ import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.utils.Timer;
-import com.badlogic.gdx.utils.Timer.Task;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.trading.entities.Npc;
 import com.trading.entities.NpcController;
 import com.trading.entities.Player;
+import com.trading.entities.PlayerData;
 import com.trading.game.Game;
 import com.trading.networking.packets.ClientRequest;
 import com.trading.networking.packets.Disconnection;
@@ -117,6 +116,17 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
         } else if(Gdx.input.isKeyPressed(Input.Keys.S)) {
         	stage.getCamera().translate(0, -10, 0);
         }
+		
+		if (tick > 5) {
+			if (stage.getActors().items[101] != null) {
+				Player p = (Player) stage.getActors().items[101];
+				p.playerData.health -= 5;
+				p.playerData.stamina -= 5;
+				p.playerData.pId = 101;
+				server.sendToAllTCP(p.playerData);
+			}
+			tick = 0;
+		}
 		
 		debugBatch.begin();
 		font.setColor(Color.WHITE);
