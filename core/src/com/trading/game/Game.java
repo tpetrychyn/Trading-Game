@@ -83,7 +83,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         chatbox = new ChatBox();
         
         stage = new Stage();
-        /*//allocated first 100 actors to npcs
+        //allocated first 100 actors to npcs
 		for (int i=0;i<100;i++) {
 			Npc w = new Npc(new Texture("male_idle.png"), 10, 10, world, i, 0.5f);
 			stage.addActor(w);
@@ -97,7 +97,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 			Player p = new Player(world);
 			p.setPosition(new Vector2(-50, -100));
 			stage.addActor(p);
-		}*/
+		}
 		
         stage.addActor(player);
         

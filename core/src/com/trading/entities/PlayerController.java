@@ -17,14 +17,10 @@ import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
 import com.trading.networking.GameWorld;
 import com.trading.networking.Network;
-import models.ClientRequest;
-import models.InstancePacket;
-
 import com.trading.networking.packets.Disconnection;
 import com.trading.networking.packets.NpcMovePacket;
+import com.trading.networking.packets.PlayerDataPacket;
 import com.trading.networking.packets.PlayerMovePacket;
-
-import models.Requests;
 
 public class PlayerController extends Player implements InputProcessor {
 	
@@ -93,8 +89,8 @@ public class PlayerController extends Player implements InputProcessor {
 			p.pos.x = getX();
 			p.pos.y = getY();
 			p.clientID = client.getID();
-			if (p.pos.x != oldPos.x || p.pos.y != oldPos.y)
-				client.sendTCP(p);
+			if (p.pos.x != oldPos.x || p.pos.y != oldPos.y){}
+				//client.sendTCP(p);
         }
         
         super.draw(batch, deltaTime);
@@ -125,15 +121,13 @@ public class PlayerController extends Player implements InputProcessor {
 			}
 		}
 		if (keycode == Input.Keys.NUM_5) {
-			InstancePacket in = new InstancePacket();
-			in.id = 1;
-			client.sendTCP(in);
+			PlayerDataPacket p = new PlayerDataPacket(client.getID(), 1, getPosition());
+		    client.sendTCP(p);
 		}
 		
 		if (keycode == Input.Keys.NUM_6) {
-			InstancePacket in = new InstancePacket();
-			in.id = 2;
-			client.sendTCP(in);
+			PlayerDataPacket p = new PlayerDataPacket(client.getID(), 2, getPosition());
+		    client.sendTCP(p);
 		}
 		if (keycode == Input.Keys.ESCAPE)
 			Gdx.app.exit();
@@ -217,14 +211,20 @@ public class PlayerController extends Player implements InputProcessor {
 	    
 	    Network.register(client);
 	    System.out.println("Connected to server");
-	    PlayerData p = new PlayerData(getPosition(), client.getID(), 100, 100);
-	    client.sendUDP(p);
-		//NewConnection n = new NewConnection(client.getID(), new Vector2(getX(), getY()));
-		//client.sendTCP(n);
-		//playerData.pId = client.getID();
 	    
 	    client.addListener(new Listener() {
 	        public void received (Connection connection, Object object) {
+	        	if (object instanceof NpcMovePacket) {
+		        	   NpcMovePacket response = (NpcMovePacket)object;
+		        	   NpcMovePacket n = new NpcMovePacket();
+		        	   n.npcId = response.npcId;
+		        	   n.x = response.x;
+		        	   n.y = response.y;
+		        	   Game.stage.getActors().items[n.npcId].setPosition(n.x, n.y);
+		        	   Game.stage.getActors().items[n.npcId].setName(response.name);
+		        	   
+		           }
+	        	/*
 	           if (object instanceof PlayerMovePacket) {
 	        	  PlayerMovePacket response = (PlayerMovePacket)object;
 	        	  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);  
@@ -234,6 +234,7 @@ public class PlayerController extends Player implements InputProcessor {
 	        		   Game.stage.getActors().items[i].setPosition(response[i].x, response[i].y);
 	        	   }
 	           } else if (object instanceof NpcMovePacket) {
+	        	   System.out.println("recieved");
 	        	   NpcMovePacket response = (NpcMovePacket)object;
 	        	   NpcMovePacket n = new NpcMovePacket();
 	        	   n.npcId = response.npcId;
@@ -242,6 +243,7 @@ public class PlayerController extends Player implements InputProcessor {
 	        	   Game.stage.getActors().items[n.npcId].setPosition(n.x, n.y);
 	        	   Game.stage.getActors().items[n.npcId].setName(response.name);
 	        	   System.out.println(n.npcId);
+	        	   
 	           } else if (object instanceof Disconnection) {
 	        	   Disconnection disc = (Disconnection)object;
 	        	   System.out.println("disconnection " + (disc.pId+100));
@@ -250,7 +252,7 @@ public class PlayerController extends Player implements InputProcessor {
 	        	   PlayerData pd = (PlayerData)object;
 	        	   System.out.println("got playerdata " + pd.pId + " health " + pd.health + " changing " + (pd.pId));
 	        	   ((Player) Game.stage.getActors().items[pd.pId]).playerData = pd;
-	           }
+	           }*/
 	        }
 	        
 	     });

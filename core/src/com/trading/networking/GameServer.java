@@ -24,7 +24,6 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.trading.entities.Npc;
-import com.trading.entities.NpcController;
 import com.trading.entities.Player;
 import com.trading.game.Game;
 import com.trading.networking.packets.ClientRequest;
@@ -62,16 +61,6 @@ public class GameServer extends ApplicationAdapter implements ApplicationListene
 		npcs = new NpcMovePacket[100];
 		for (int i=0;i<100;i++)
 			npcs[i] = new NpcMovePacket();
-		
-		//0-99 are npcs
-		for(Iterator<Actor> i = gameWorld.getActors().iterator(); i.hasNext(); ) {
-			try {
-				NpcController n = (NpcController) i.next();
-				stage.addActor(n);
-			} catch(Exception e) {
-				
-			}
-		}
 		
 		map = new TmxMapLoader().load("Maps/map.tmx");
 		mapRenderer = new IsometricTiledMapRenderer(map);

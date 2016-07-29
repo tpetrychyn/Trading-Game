@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.tiled.TiledMap;
@@ -18,7 +17,6 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.trading.entities.NpcController;
 import com.trading.entities.Player;
 import com.trading.game.Game;
 import com.trading.game.Util;
@@ -58,12 +56,6 @@ public class GameWorld {
 		world = new World(new Vector2(0, 0), true);
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
 		actors = new ArrayList<Actor>();
-		for (int i=0;i<100;i++) {
-			NpcController npc = new NpcController(new Texture("male_idle.png"), Util.randomRange(0, 50), Util.randomRange(0, 50), this, i, 0.5f);
-			npc.startRandomWalk(1);
-			npc.setName(generateName());
-			actors.add(npc);
-		}
 		sr = new ShapeRenderer();
 	}
 	
