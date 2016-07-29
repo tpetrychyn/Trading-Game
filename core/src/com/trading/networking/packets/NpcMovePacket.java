@@ -1,23 +1,32 @@
 package com.trading.networking.packets;
 
-import com.badlogic.gdx.math.Vector2;
 
 public class NpcMovePacket {
 
-	public Vector2 pos;
+	public float x;
+	public float y;
 	public int npcId;
+	public String name;
 
 	public NpcMovePacket() {
-	    this.pos = new Vector2(0, 0);
+	    this.x = 0;
+	    this.y = 0;
 	    this.npcId = -1;
+	    this.name = "";
 	}
 
-	public NpcMovePacket(Vector2 v, int npcId) {
-	    this.pos = v;
+	public NpcMovePacket(float x, float y, int npcId, String name) {
+	    this.x = x;
+	    this.y = y;
 	    this.npcId = npcId;
+	    this.name = name;
 	}
 	
-	public Vector2 getPos() {
-		return pos;
+	public float getX() {
+		return x;
+	}
+	
+	public float getY() {
+		return y;
 	}
 }

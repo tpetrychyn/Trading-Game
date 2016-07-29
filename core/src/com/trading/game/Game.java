@@ -17,10 +17,12 @@ import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.Npc;
 import com.trading.entities.Player;
+import com.trading.entities.PlayerController;
 import com.trading.entities.WorldActor;
 import com.trading.networking.GameWorld;
 
@@ -43,7 +45,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	BitmapFont font;
 	
 	GameWorld world;
-    static Player player;
+    static PlayerController player;
     
     public static OrthographicCamera camera;
     
@@ -68,7 +70,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		map = new TmxMapLoader().load("Maps/map.tmx");
 		mapRenderer = new IsometricTiledMapRenderer(map);
 		
-		player = new Player(world);
+		player = new PlayerController(world);
 		player.setPosition(new Vector2(10, 10));
 		
 		world.addPlayer(player);
@@ -79,8 +81,6 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         camera.zoom = 0.5f;
         camera.update();
         
-        
-        
         font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
         
         chatbox = new ChatBox();
@@ -88,28 +88,26 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         stage = new Stage();
         //allocated first 100 actors to npcs
 		for (int i=0;i<100;i++) {
-			Npc w = new Npc(world);
-			w.setPosition(10, 10);
-			//WorldActor w = new WorldActor(new Texture("male_idle.png"), 10, 10, world, i, 0.5f);
+			Npc w = new Npc(new Texture("male_idle.png"), 10, 10, world, i, 0.5f);
 			stage.addActor(w);
 		}
 		
-		//your player becomes 101
+		//your player becomes 100
 		stage.addActor(player);
 		
-		//then add actors up to 1000
-		for (int i=102;i<202;i++) {
-			WorldActor w = new WorldActor(new Texture("male_idle.png"), -50, -100, world, i, 0.5f);
-			stage.addActor(w);
+		//fill the stage will empty actors
+		for (int i=101;i<1000;i++) {
+			Player p = new Player(world);
+			p.setPosition(new Vector2(-50, -100));
+			stage.addActor(p);
 		}
+		
         Gdx.input.setInputProcessor(player);
 	}
 	
 	public static OrthographicCamera getCamera() {
 		return camera;
 	}
-	
-	
 	
 	@Override
 	public void render () {
@@ -148,7 +146,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		debugBatch.end();
 	}
 	
-	public static Player getPlayer() {
+	public static PlayerController getPlayer() {
 		return player;
 	}
 	

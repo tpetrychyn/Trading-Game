@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.Timer.Task;
 import com.trading.game.Util;
@@ -48,6 +49,8 @@ public class Npc extends WorldActor {
 		this.id = id;
 		font = new BitmapFont();
 		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+		
+		world.setWorldPosition(this, new Vector2(x, y));
 
 		this.world = world;
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
@@ -66,103 +69,15 @@ public class Npc extends WorldActor {
         walkAnimations[7] = a.addAnimation(27, 1);
 		
         setScale(scale);
-	}
-	
-	public void startRandomWalk(int delay) {
-		randomWalk = new Timer().scheduleTask(new Task(){
-		    @Override
-		    public void run() {
-		        randomWalk();
-		    }
-		}, 0, Util.randomRange(1, delay));
-	}
-	
-	public void stopRandomWalk() {
-		randomWalk.cancel();
-		velocity.x = 0;
-		velocity.y = 0;
+        setName("");
 	}
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
-		stateTime += Gdx.graphics.getDeltaTime();
-		
-		Vector2 oldPos = new Vector2(getX(), getY());
-        setX(getX() + velocity.x * Gdx.graphics.getDeltaTime());
-        setY(getY() + velocity.y * Gdx.graphics.getDeltaTime());
         
-        Vector2 newPos = new Vector2(getX(), getY());
-        if (world.getWorldPosition(newPos).x < 0 || world.getWorldPosition(newPos).y < 0.2
-        		|| world.getWorldPosition(newPos).x > 99.8 || world.getWorldPosition(newPos).y > 100
-        		|| world.isCellBlocked(world.getWorldPosition(newPos).x, world.getWorldPosition(newPos).y)
-        		|| world.actorCollision(this)){
-        	setY(oldPos.y);
-        	setX(oldPos.x);
-        	velocity.x = 0f;
-    		velocity.y = 0f;
-        } 
-        
-        if (maxBounds != null && minBounds != null) {
-        	if (world.getWorldPosition(newPos).x < minBounds.x || world.getWorldPosition(newPos).y < minBounds.y
-        			|| world.getWorldPosition(newPos).x > maxBounds.x || world.getWorldPosition(newPos).y > maxBounds.y) {
-        		setX(oldPos.x);
-        		setY(oldPos.y);
-        		velocity.x = 0f;
-        		velocity.y = 0f;
-        	}		
-        }
-        
-        
-        //if npc is moving use an animated sprite, if not use the static sprites
-        if (Math.abs(velocity.x) > 0 || Math.abs(velocity.y) > 0)
-        	sprite = new Sprite(walkAnimations[direction.getValue()].getKeyFrame(stateTime, true));
-        else
-        	sprite = new Sprite(walkAnimations[direction.getValue() + 4].getKeyFrame(stateTime, true));
-        
-		batch.draw(sprite, getX(), getY(), getWidth(), getHeight());
 		font.setColor(Color.WHITE);
 		font.getData().setScale(0.5f);
-		//font.draw(batch, name, getX() + Size().x/2 - name.length()*7/2, getY()+Size().y + 10);
-		
-		if (getX() != oldPos.x || getY() != oldPos.y)
-        	GameServer.updateActor(id);
-	}
-	
-	public void setBounds(int minX, int minY, int maxX, int maxY) {
-		minBounds = new Vector2(minX, minY);
-		maxBounds = new Vector2(maxX, maxY);
-	}
-	
-	void randomWalk() {
-		int randomWalk = Util.randomRange(0, 8);
-		switch (randomWalk) {
-		case 0:
-			velocity.x = 20f;
-			velocity.y = 0f;
-			direction = Direction.EAST;
-			break;
-		case 1:
-			velocity.x = -20f;
-			velocity.y = 0f;
-			direction = Direction.WEST;
-			break;
-		case 2:
-			velocity.y = 20f;
-			velocity.x = 0f;
-			direction = Direction.NORTH;
-			break;
-		case 3: 
-			velocity.y = -20f;
-			velocity.x = 0f;
-			direction = Direction.SOUTH;
-			break;
-		default:
-			velocity.x = 0;
-			velocity.y = 0;
-			break;
-		}
-	}
-	
-	public void addAnimation(Texture sheet, int columns, int rows) {
+		font.draw(batch, getName(), getX() + getWidth()/2 - getName().length()*7/2, getY()+getHeight() + 10);
+		super.draw(batch, alpha);
 	}
 }

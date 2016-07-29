@@ -24,18 +24,12 @@ public class WorldActor extends Actor {
 	Vector2 maxBounds;
 	Direction direction = Direction.SOUTH;
 	public int id;
-	public String name;
+	
 	
 	public boolean isMoving = false;
 	
 	public WorldActor() {
 		
-	}
-	
-	public WorldActor(Class type) {
-		
-		this.id = -1;
-		setPosition(-100,-100);
 	}
 	
 	public WorldActor(Texture image, float x, float y, GameWorld world, int id, float scale) {
@@ -56,7 +50,7 @@ public class WorldActor extends Actor {
         walkAnimations[6] = a.addAnimation(18, 1);
         walkAnimations[7] = a.addAnimation(27, 1);
         
-        //setScale(scale);
+        setScale(scale);
 	}
 	
 	public void setScale(float scale) {
