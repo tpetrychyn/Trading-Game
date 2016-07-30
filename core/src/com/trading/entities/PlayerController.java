@@ -20,12 +20,10 @@ import com.trading.networking.ConnectionHandler;
 import com.trading.networking.packets.InstancePacket;
 import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerDataPacket;
-import com.trading.networking.packets.PlayerMovePacket;
 
 public class PlayerController extends Player implements InputProcessor {
 	
 
-    PlayerMovePacket p;
     public int instanceId = 1;
 	public boolean isTyping = false;
 	public Instance instance;
@@ -36,7 +34,6 @@ public class PlayerController extends Player implements InputProcessor {
 	
 	public PlayerController(Instance instance) {
 		super(instance);
-		p = new PlayerMovePacket();
         this.instance = instance;
         connectionHandler = new ConnectionHandler();
 	}
@@ -130,12 +127,28 @@ public class PlayerController extends Player implements InputProcessor {
 			        	   } else {
 			        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
 			        	   }
-			        	   
 			        }
 		        	if (object instanceof PlayerDataPacket) {
-			        	  PlayerDataPacket response = (PlayerDataPacket)object;
-			        	  
-			        	 // Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);  
+			        	  PlayerDataPacket packet = (PlayerDataPacket)object;
+			        	  if (instance.getPlayers().get(packet.id) == null) {
+			        		   Gdx.app.postRunnable(new Runnable() {
+			        		         @Override
+			        		         public void run() {
+			        		        	 PlayerDataPacket packet = (PlayerDataPacket)object;
+			        		        	 Player p = new Player(instance);
+			        		        	 instance.getPlayers().put(packet.id, p);
+			        		         }
+			        		      });
+			        	   } else {
+			        		   instance.getPlayers().get(packet.id).setPosition(packet.playerData.pos);
+			        	   }
+			         }
+		        	
+		        	if (object instanceof InstancePacket) {
+			        	  InstancePacket packet = (InstancePacket)object;
+			        	  if (packet.action == "leave") {
+			        		  instance.getPlayers().remove(packet.clientId);
+			        	  }
 			         }
 		        }
 		        

@@ -3,6 +3,7 @@ package com.trading.networking.packets;
 public class InstancePacket {
 	
 	public int id;
+	public int clientId;
 	public String action;
 	
 	public InstancePacket() {
@@ -18,5 +19,4 @@ public class InstancePacket {
 	public int getId() {
 		return id;
 	}
-
 }

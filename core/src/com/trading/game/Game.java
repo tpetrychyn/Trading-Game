@@ -102,20 +102,20 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		
 		mapRenderer.render(foreground);
 		
-		/*debugBatch.begin();
+		debugBatch.begin();
 		font.setColor(Color.WHITE);
 		Vector2 playerPos = player.getWorldPosition();
 		font.draw(debugBatch, "World X: " + (int) playerPos.x + " World Y: " + (int) playerPos.y, 50, 50);
 		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
 		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
-		if (chatbox.showTextEnter) {
+		/*if (chatbox.showTextEnter) {
 			chatbox.field.draw(debugBatch, 1f);
 		}
 		if (chatbox.shouldFade && chatbox.fade > 0)
 			chatbox.fade -= Gdx.graphics.getDeltaTime();
-		chatbox.textArea.draw(debugBatch, chatbox.fade/10);
+		chatbox.textArea.draw(debugBatch, chatbox.fade/10);*/
 		
-		debugBatch.end();*/
+		debugBatch.end();
 	}
 	
 	public static PlayerController getPlayer() {

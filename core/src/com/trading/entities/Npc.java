@@ -38,6 +38,7 @@ public class Npc extends WorldActor {
         walkAnimations[5] = a.addAnimation(9, 1);
         walkAnimations[6] = a.addAnimation(18, 1);
         walkAnimations[7] = a.addAnimation(27, 1);
+        setName("");
 	}
 	
 	public Npc(Texture image, float x, float y, Instance instance, int id, float scale, String name) {
