@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.trading.game.Instance;
 
@@ -68,12 +69,26 @@ public class Npc extends WorldActor {
         setName(name);
 	}
 	
+	public TextureRegion getCurrentTexture(float st) {
+    	if (!isMoving)
+    		return walkAnimations[direction.getValue() + 4].getKeyFrame(st);
+    	
+    	return walkAnimations[direction.getValue()].getKeyFrame(st, true);
+    }
+	
+	float timeSinceMove = 0;
 	@Override
 	public void draw(Batch batch, float alpha) {
-        
+		stateTime += Gdx.graphics.getDeltaTime();
+		sprite = new Sprite(getCurrentTexture(stateTime));
+		
 		font.setColor(Color.WHITE);
 		font.getData().setScale(0.5f);
 		font.draw(batch, getName(), getX() + getWidth()/2 - getName().length()*7/2, getY()+getHeight() + 10);
 		super.draw(batch, alpha);
+		
+		if (timeSinceMove > 0.2)
+			isMoving = false;
+		timeSinceMove += Gdx.graphics.getDeltaTime();
 	}
 }

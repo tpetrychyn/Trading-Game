@@ -3,6 +3,7 @@ package com.trading.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -45,15 +46,27 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
     
     TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
-	private int[] backgroundLayers = new int[] {0, 1}, foreground = new int[] {2};
 	
 	Instance instance;
+	
+	public static String ip;
+	
+	public class MyTextInputListener implements TextInputListener {
+		   @Override
+		   public void input (String text) {
+			   ip = text;
+		   }
+
+		   @Override
+		   public void canceled () {
+		   }
+		}
 	
 	@Override
 	public void create () {
 		
-		//MyTextInputListener listener = new MyTextInputListener();
-		//Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
+		MyTextInputListener listener = new MyTextInputListener();
+		Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
 		
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();

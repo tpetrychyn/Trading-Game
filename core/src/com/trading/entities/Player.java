@@ -93,7 +93,6 @@ public class Player extends WorldActor  {
     		return walkAnimations[direction.getValue() + 4].getKeyFrame(st);
     	
     	return walkAnimations[direction.getValue()].getKeyFrame(st, true);
-    		
     }
 	
 	@Override

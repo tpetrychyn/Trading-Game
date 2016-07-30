@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Listener;
+import com.trading.game.Game;
 
 public class ConnectionHandler {
 	
@@ -52,7 +53,7 @@ public class ConnectionHandler {
 		client = new Client();
 	    client.start();
 	    try {
-			client.connect(5000, "localhost", Network.PORT_TCP, Network.PORT_UDP);
+			client.connect(5000, Game.ip, Network.PORT_TCP, Network.PORT_UDP);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

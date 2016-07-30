@@ -1,5 +1,6 @@
 package com.trading.networking.packets;
 
+import com.trading.entities.Direction;
 
 public class NpcMovePacket {
 
@@ -7,6 +8,7 @@ public class NpcMovePacket {
 	public float y;
 	public int npcId;
 	public String name;
+	public Direction direction;
 
 	public NpcMovePacket() {
 	    this.x = 0;

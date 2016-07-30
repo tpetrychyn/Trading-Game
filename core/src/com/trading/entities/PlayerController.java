@@ -121,11 +121,16 @@ public class PlayerController extends Player implements InputProcessor {
 		        		        	 NpcMovePacket response = (NpcMovePacket)object;
 		        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
 		        		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
+		        		        	 newn.direction = response.direction;
 		        		        	 instance.getActors().put(response.npcId, newn);
 		        		         }
 		        		      });
 		        	   } else {
+		        		   ((Npc) instance.getActors().get(n.npcId)).direction = response.direction;
+		        		   ((Npc) instance.getActors().get(n.npcId)).isMoving = true;
+		        		   ((Npc) instance.getActors().get(n.npcId)).timeSinceMove = 0;
 		        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
+		        		   
 		        	   }
 			        }
 		        	
