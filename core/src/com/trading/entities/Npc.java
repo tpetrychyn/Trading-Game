@@ -9,20 +9,15 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.utils.Timer;
-import com.badlogic.gdx.utils.Timer.Task;
-import com.trading.game.Util;
-import com.trading.networking.GameServer;
-import com.trading.networking.GameWorld;
+import com.trading.game.Instance;
 
 public class Npc extends WorldActor {
 	
 	float stateTime;
 	BitmapFont font;
 	
-	public Npc(GameWorld world) {
-		this.world = world;
+	public Npc(Instance instance) {
+		this.instance = instance;
 		font = new BitmapFont();
 		
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
@@ -45,14 +40,14 @@ public class Npc extends WorldActor {
         walkAnimations[7] = a.addAnimation(27, 1);
 	}
 	
-	public Npc(Texture image, float x, float y, GameWorld world, int id, float scale) {
+	public Npc(Texture image, float x, float y, Instance instance, int id, float scale, String name) {
 		this.id = id;
 		font = new BitmapFont();
 		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
+		this.instance = instance;
 		
-		world.setWorldPosition(this, new Vector2(x, y));
+		instance.setWorldPosition(this, new Vector2(x, y));
 
-		this.world = world;
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);
 		
@@ -69,7 +64,7 @@ public class Npc extends WorldActor {
         walkAnimations[7] = a.addAnimation(27, 1);
 		
         setScale(scale);
-        setName("");
+        setName(name);
 	}
 	
 	@Override

@@ -10,12 +10,12 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer.Task;
-import com.trading.networking.GameWorld;
+import com.trading.game.Instance;
 
 public class WorldActor extends Actor {
 
 	Sprite sprite;
-	GameWorld world;
+	Instance instance;
 	Vector2 velocity = new Vector2();
 	Animation[] walkAnimations;
 	Animation walk;
@@ -32,12 +32,12 @@ public class WorldActor extends Actor {
 		
 	}
 	
-	public WorldActor(Texture image, float x, float y, GameWorld world, int id, float scale) {
+	public WorldActor(Texture image, float x, float y, Instance instance, int id, float scale) {
 		this.id = id;
 
 		sprite = new Sprite(image);
-		this.world = world;
-		world.setWorldPosition(this, new Vector2(x,y));
+		this.instance = instance;
+		instance.setWorldPosition(this, new Vector2(x,y));
 		walkAnimations = new Animation[8];
 		Animator a = new Animator(9, 4, "male_walk.png");
         walkAnimations[0] = a.addAnimation(1, 7);

@@ -1,12 +1,12 @@
 package com.trading.entities;
 
-import java.io.IOException;
 import java.util.Iterator;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -15,9 +15,9 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
-import com.trading.networking.GameWorld;
-import com.trading.networking.Network;
-import com.trading.networking.packets.Disconnection;
+import com.trading.game.Instance;
+import com.trading.networking.ConnectionHandler;
+import com.trading.networking.packets.InstancePacket;
 import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerDataPacket;
 import com.trading.networking.packets.PlayerMovePacket;
@@ -26,19 +26,19 @@ public class PlayerController extends Player implements InputProcessor {
 	
 
     PlayerMovePacket p;
-    PlayerMovePacket players[];
-    Npc npcs[];
-	Client client;
+    public int instanceId = 1;
 	public boolean isTyping = false;
+	public Instance instance;
+	ConnectionHandler connectionHandler;
+	public Listener connectionListener;
 	
     Vector3 mousePos = new Vector3(0, 0, 0);
 	
-	public PlayerController(GameWorld world) {
-		super(world);
-		// TODO Auto-generated constructor stub
+	public PlayerController(Instance instance) {
+		super(instance);
 		p = new PlayerMovePacket();
-		players = new PlayerMovePacket[100];
-        npcs = new Npc[100];
+        this.instance = instance;
+        connectionHandler = new ConnectionHandler();
 	}
 
 	@Override
@@ -46,6 +46,7 @@ public class PlayerController extends Player implements InputProcessor {
 		float deltaTime = Gdx.graphics.getDeltaTime();
 		if (isTyping)
 			return;
+		
 		Vector2 playerVelocity = new Vector2();
         // On right or left arrow set the velocity at a fixed rate in that direction
         if(Gdx.input.isKeyPressed(Input.Keys.D)) {
@@ -79,18 +80,16 @@ public class PlayerController extends Player implements InputProcessor {
         
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
-        		|| world.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
-        		|| world.actorCollision(this)){
+        		|| instance.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
+        		|| instance.actorCollision(this)){
         	setY(oldPos.y);
         	setX(oldPos.x);
         }
         
-        if (client != null && client.isConnected()) {
-			p.pos.x = getX();
-			p.pos.y = getY();
-			p.clientID = client.getID();
-			if (p.pos.x != oldPos.x || p.pos.y != oldPos.y){}
-				//client.sendTCP(p);
+        if (connectionHandler.client != null && connectionHandler.client.isConnected()) {
+        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, getPosition());
+			if (p.playerData.pos.x != oldPos.x || p.playerData.pos.y != oldPos.y)
+				connectionHandler.client.sendTCP(p);
         }
         
         super.draw(batch, deltaTime);
@@ -108,29 +107,59 @@ public class PlayerController extends Player implements InputProcessor {
 		}
 		
 		if (keycode == Input.Keys.NUM_3) {
-			if (client != null)
+			if (connectionHandler.client != null)
 				return false;
-			connectToServer();
+			connectionListener = new Listener() {
+		        public void received (Connection connection, final Object object) {
+		        	if (object instanceof NpcMovePacket) {
+		        		NpcMovePacket response = (NpcMovePacket)object;
+			        	   NpcMovePacket n = new NpcMovePacket();
+			        	   n.npcId = response.npcId;
+			        	   n.x = response.x;
+			        	   n.y = response.y;
+			        	   if (instance.getActors().get(n.npcId) == null) {
+			        		   Gdx.app.postRunnable(new Runnable() {
+			        		         @Override
+			        		         public void run() {
+			        		        	 NpcMovePacket response = (NpcMovePacket)object;
+			        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
+			        		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
+			        		        	 instance.getActors().put(response.npcId, newn);
+			        		         }
+			        		      });
+			        	   } else {
+			        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
+			        	   }
+			        	   
+			        }
+		        	if (object instanceof PlayerDataPacket) {
+			        	  PlayerDataPacket response = (PlayerDataPacket)object;
+			        	  
+			        	 // Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);  
+			         }
+		        }
+		        
+		     };
+			connectionHandler.connectToServer(connectionListener);
+			
 		}
 		
 		if (keycode == Input.Keys.NUM_4) {
-			for (int i=0;i<100;i++) {
-				if (npcs[i] == null)
-					continue;
-				System.out.println(npcs[i].getX());
-			}
+			InstancePacket in = new InstancePacket(instanceId, "leave");
+			connectionHandler.client.sendTCP(in);
+			instanceId = 1;
+			instance.getActors().clear();
 		}
 		if (keycode == Input.Keys.NUM_5) {
-			PlayerDataPacket p = new PlayerDataPacket(client.getID(), 1, getPosition());
-		    client.sendTCP(p);
+			InstancePacket in = new InstancePacket(instanceId, "leave");
+			connectionHandler.client.sendTCP(in);
+			instanceId = 2;
+			instance.getActors().clear();
 		}
 		
-		if (keycode == Input.Keys.NUM_6) {
-			PlayerDataPacket p = new PlayerDataPacket(client.getID(), 2, getPosition());
-		    client.sendTCP(p);
-		}
 		if (keycode == Input.Keys.ESCAPE)
 			Gdx.app.exit();
+		
 		return false;
 	}
 	
@@ -161,7 +190,6 @@ public class PlayerController extends Player implements InputProcessor {
 						&& mousePos.y > a.getY()) {
 			    	if (distanceToPoint(new Vector2(a.getX(),a.getY())) < 30) {
 			    		System.out.println(((Npc) a).id);
-			    		//((NpcController) a).stopRandomWalk();
 			    		((Npc) a).setColor(Color.WHITE);
 			    	}
 					return false;
@@ -198,73 +226,13 @@ public class PlayerController extends Player implements InputProcessor {
 		return false;
 	}
 	
-	public void connectToServer() {
-		client = new Client(20000, 10000);
-	    client.start();
-	    try {
-			client.connect(5000, "localhost", Network.PORT_TCP, Network.PORT_UDP);
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    
-	    Network.register(client);
-	    System.out.println("Connected to server");
-	    
-	    client.addListener(new Listener() {
-	        public void received (Connection connection, Object object) {
-	        	if (object instanceof NpcMovePacket) {
-		        	   NpcMovePacket response = (NpcMovePacket)object;
-		        	   NpcMovePacket n = new NpcMovePacket();
-		        	   n.npcId = response.npcId;
-		        	   n.x = response.x;
-		        	   n.y = response.y;
-		        	   Game.stage.getActors().items[n.npcId].setPosition(n.x, n.y);
-		        	   Game.stage.getActors().items[n.npcId].setName(response.name);
-		        	   
-		           }
-	        	/*
-	           if (object instanceof PlayerMovePacket) {
-	        	  PlayerMovePacket response = (PlayerMovePacket)object;
-	        	  Game.stage.getActors().items[response.clientID+100].setPosition(response.pos.x, response.pos.y);  
-	           } else if (object instanceof NpcMovePacket[]) {
-	        	   NpcMovePacket[] response = (NpcMovePacket[])object;
-	        	   for (int i=0;i<100;i++) {
-	        		   Game.stage.getActors().items[i].setPosition(response[i].x, response[i].y);
-	        	   }
-	           } else if (object instanceof NpcMovePacket) {
-	        	   System.out.println("recieved");
-	        	   NpcMovePacket response = (NpcMovePacket)object;
-	        	   NpcMovePacket n = new NpcMovePacket();
-	        	   n.npcId = response.npcId;
-	        	   n.x = response.x;
-	        	   n.y = response.y;
-	        	   Game.stage.getActors().items[n.npcId].setPosition(n.x, n.y);
-	        	   Game.stage.getActors().items[n.npcId].setName(response.name);
-	        	   System.out.println(n.npcId);
-	        	   
-	           } else if (object instanceof Disconnection) {
-	        	   Disconnection disc = (Disconnection)object;
-	        	   System.out.println("disconnection " + (disc.pId+100));
-	        	   Game.stage.getActors().items[disc.pId+100].setPosition(-50, -100);
-	           } else if (object instanceof PlayerData) {
-	        	   PlayerData pd = (PlayerData)object;
-	        	   System.out.println("got playerdata " + pd.pId + " health " + pd.health + " changing " + (pd.pId));
-	        	   ((Player) Game.stage.getActors().items[pd.pId]).playerData = pd;
-	           }*/
-	        }
-	        
-	     });
-	}
-	
 	public Vector2 getMousePosition() {
 		return new Vector2(mousePos.x, mousePos.y);
 	}
 	
 	public Vector2 getTileClicked() {
 		Vector2 m = new Vector2(mousePos.x, mousePos.y);
-		return world.getWorldPosition(m);//twoDToIso(getTileCoordinates(m, 32));
+		return instance.getWorldPosition(m);
 	}
 	
 	float distanceToPoint(Vector2 pt) {

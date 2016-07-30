@@ -9,12 +9,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.trading.networking.GameWorld;
+import com.trading.game.Instance;
 
 public class Player extends WorldActor  {
 	
 	
-    GameWorld world;
+    Instance instance;
     
     float playerSpeed = 200f;
     public boolean isMoving = false;
@@ -39,7 +39,7 @@ public class Player extends WorldActor  {
     }
     
     public Vector2 getWorldPosition() {
-    	return world.getWorldPosition(getPosition());
+    	return instance.getWorldPosition(getPosition());
     }
     
     public void setWorldPosition(Vector2 pos) {
@@ -60,8 +60,8 @@ public class Player extends WorldActor  {
     	setY(transform.y);
     }
 	
-	public Player(GameWorld world) {
-		this.world = world;
+	public Player(Instance instance) {
+		this.instance = instance;
 		
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);

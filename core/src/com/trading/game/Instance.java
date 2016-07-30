@@ -1,34 +1,36 @@
-package com.trading.networking;
+package com.trading.game;
 
-import java.util.ArrayList;
+
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.maps.MapLayers;
+import com.badlogic.gdx.maps.MapProperties;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer.Cell;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
-import com.badlogic.gdx.maps.tiled.renderers.IsometricTiledMapRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.entities.Player;
-import com.trading.game.Game;
-import com.trading.game.Util;
 
-public class GameWorld {
+public class Instance {
 	
-	World world;
-	TiledMap map;
-	IsometricTiledMapRenderer mapRenderer;
-	List<Actor> actors;
-	MapLayers collisionLayers;
-	ShapeRenderer sr;
+	public int id;
+	public String name;
+	public World world;
+	public TiledMap map;
+	public int worldWidth;
+	public int worldHeight;
+	public MapLayers collisionLayers;
+	public HashMap<Integer, Actor> actors = new HashMap<Integer, Actor>();
+	public HashMap<Integer, Player> players = new HashMap<Integer, Player>();
+	//public Group players;
 	
 	private static String[] Beginning = { "Kr", "Ca", "Ra", "Mrok", "Cru",
 	         "Ray", "Bre", "Zed", "Drak", "Mor", "Jag", "Mer", "Jar", "Mjol",
@@ -42,28 +44,39 @@ public class GameWorld {
 	   
 	   private static Random rand = new Random();
 
-	   public static String generateName() {
-
+	   public String generateName() {
 	      return Beginning[rand.nextInt(Beginning.length)] + 
 	            Middle[rand.nextInt(Middle.length)]+
 	            End[rand.nextInt(End.length)];
-
 	   }
 	
-	public GameWorld(String mapFile) {
+	public Instance(String mapFile) {
 		map = new TmxMapLoader().load(mapFile);
-		mapRenderer = new IsometricTiledMapRenderer(map);
+		MapProperties prop = map.getProperties();
+		worldWidth = prop.get("width", Integer.class);
+		worldHeight = prop.get("width", Integer.class);
 		world = new World(new Vector2(0, 0), true);
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
-		actors = new ArrayList<Actor>();
-		sr = new ShapeRenderer();
+	}
+	
+	public void Draw(Batch batch, float alpha) {
+		for (int key: players.keySet()) {
+        	players.get(key).draw(batch, alpha);
+        }
+		for (int key: actors.keySet()) {
+        	actors.get(key).draw(batch, alpha);
+        }
 	}
 	
 	public void addPlayer(Player p) {
-		actors.add(p);
+		players.put(p.id, p);
 	}
 	
-	public List<Actor> getActors() {
+	public HashMap<Integer, Player> getPlayers() {
+		return players;
+	}
+	
+	public HashMap<Integer, Actor> getActors() {
 		return actors;
 	}
 	
@@ -79,7 +92,6 @@ public class GameWorld {
 		// TODO Auto-generated method stub
 		world.dispose();
 		map.dispose();
-		mapRenderer.dispose();
 	}
 	
 	public void setWorldPosition(Actor p, Vector2 pos) {
@@ -110,17 +122,17 @@ public class GameWorld {
     	return Util.twoDToIso(getTileCoordinates(pt, 32));
     }
 	
-	public boolean actorCollision(Actor self) {
-		for(Iterator<Actor> i = Game.stage.getActors().iterator(); i.hasNext(); ) {
-		    Actor a = i.next();
-		    if (a.hashCode() == self.hashCode())
-		    	continue;
-			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
-			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
-			if (Intersector.overlaps(p, n)) {
-				return true;
-			}
-		}
+    public boolean actorCollision(Actor self) {
+    	for (int key: actors.keySet()) {
+    		Actor a = actors.get(key);
+ 		    if (a.hashCode() == self.hashCode())
+ 		    	continue;
+ 			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
+ 			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
+ 			if (Intersector.overlaps(p, n)) {
+ 				return true;
+ 			}
+        }
 		return false;
 	}
 }
