@@ -142,9 +142,9 @@ public class PlayerController extends Player implements InputProcessor {
         		        	 for (int i=0;i<response.length;i++) {
         		        		 NpcMovePacket n = response[i];
         		        		 if (Game.player.instance.getActors().get(n.npcId) == null) {
+        		        			 System.out.println(n.x + " " + n.y);
     	        		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
     	        		        	 Game.player.instance.getActors().put(n.npcId, newn);
-    	        		        	 System.out.println(Game.player.instance.getActors().size());
         		        		 }
         		        	 }
         		         }
@@ -189,6 +189,9 @@ public class PlayerController extends Player implements InputProcessor {
 			instance = new Instance("map.tmx");
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(1,1));
+			
+			in = new InstancePacket(instanceId, "join");
+			connectionHandler.client.sendTCP(in);
 		}
 		if (keycode == Input.Keys.NUM_5) {
 			InstancePacket in = new InstancePacket(instanceId, "leave");
@@ -199,6 +202,9 @@ public class PlayerController extends Player implements InputProcessor {
 			instance = new Instance("house.tmx");
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(10,1));
+			
+			in = new InstancePacket(instanceId, "join");
+			connectionHandler.client.sendTCP(in);
 		}
 		
 		if (keycode == Input.Keys.ESCAPE)

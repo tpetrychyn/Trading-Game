@@ -47,8 +47,7 @@ public class Npc extends WorldActor {
 		font = new BitmapFont();
 		font.getRegion().getTexture().setFilter(TextureFilter.Linear, TextureFilter.Linear);
 		this.instance = instance;
-		
-		instance.setWorldPosition(this, new Vector2(x, y));
+		setPosition(x, y);
 
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);

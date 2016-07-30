@@ -3,8 +3,8 @@ package com.trading.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.TextInputListener;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -98,8 +98,8 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	public void render () {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		// set viewport
-        Gdx.gl.glViewport((int) viewport.x, (int) viewport.y,
-                          (int) viewport.width, (int) viewport.height);
+        //Gdx.gl.glViewport((int) viewport.x, (int) viewport.y,
+       //                   (int) viewport.width, (int) viewport.height);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
 		camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
@@ -156,7 +156,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	}   
 	
 	public void resize (int width, int height) {
-		// calculate new viewport
+		/*// calculate new viewport
         float aspectRatio = (float)width/(float)height;
         float scale = 1f;
         Vector2 crop = new Vector2(0f, 0f); 
@@ -176,8 +176,14 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         }
 
         float w = (float)VIRTUAL_WIDTH*scale;
-        float h = (float)VIRTUAL_HEIGHT*scale;
-        viewport = new Rectangle(crop.x, crop.y, w, h);
+        float h = (float)VIRTUAL_HEIGHT*scale;*/
+        camera.setToOrtho(false);
+        batch.setProjectionMatrix(camera.combined);
+        
+        OrthographicCamera c = new OrthographicCamera(width, height);
+        c.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
+        c.update();
+        debugBatch.setProjectionMatrix(c.combined);
 	}
 
 	@Override

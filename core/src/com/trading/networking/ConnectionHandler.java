@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
+import com.trading.networking.packets.InstancePacket;
 
 public class ConnectionHandler {
 	
@@ -64,5 +65,8 @@ public class ConnectionHandler {
 	    System.out.println("Connected to server");
 	    
 	    client.addListener(connectionListener);
+	    
+	    InstancePacket in = new InstancePacket(Game.player.instanceId, "join");
+		client.sendTCP(in);
 	}
 }
