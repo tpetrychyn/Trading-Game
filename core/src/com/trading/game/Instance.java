@@ -1,10 +1,12 @@
 package com.trading.game;
 
+import org.json.*;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.maps.MapLayers;
 import com.badlogic.gdx.maps.MapProperties;
@@ -18,6 +20,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.entities.Player;
+import com.trading.entities.PlayerController;
 
 public class Instance {
 	
@@ -30,6 +33,9 @@ public class Instance {
 	public MapLayers collisionLayers;
 	public HashMap<Integer, Actor> actors = new HashMap<Integer, Actor>();
 	public HashMap<Integer, Player> players = new HashMap<Integer, Player>();
+	public int[] backgroundLayers, foregroundLayers;
+	private int totalLayers = 0;
+	
 	//public Group players;
 	
 	private static String[] Beginning = { "Kr", "Ca", "Ra", "Mrok", "Cru",
@@ -50,22 +56,54 @@ public class Instance {
 	            End[rand.nextInt(End.length)];
 	   }
 	
-	public Instance(String mapFile) {
-		map = new TmxMapLoader().load(mapFile);
+	public Instance(String mapFile)  {
+		map = new TmxMapLoader().load("Maps/" + mapFile);
 		MapProperties prop = map.getProperties();
 		worldWidth = prop.get("width", Integer.class);
 		worldHeight = prop.get("width", Integer.class);
 		world = new World(new Vector2(0, 0), true);
 		this.collisionLayers = (MapLayers) getTiledMap().getLayers();
+		
+		//parse json file containing each maps info to get layers and total layers used for rendering and collision
+		JSONObject obj;
+		try {
+			obj = new JSONObject(Gdx.files.internal("Maps/Maps.json").readString());
+			JSONArray arr = obj.getJSONArray("maps");
+			for (int i = 0; i < arr.length(); i++)
+			{
+				if (arr.getJSONObject(i).getString("file").equals(mapFile)) {
+					JSONArray bg = arr.getJSONObject(i).getJSONArray("backgroundLayers");
+					int[] bgLayers = new int[bg.length()];
+					for (int x=0;x<bg.length();x++) {
+						bgLayers[x] = bg.getInt(x);
+						totalLayers++;
+					}
+					backgroundLayers = bgLayers;
+					JSONArray fg = arr.getJSONObject(i).getJSONArray("foregroundLayers");
+					int[] fgLayers = new int[fg.length()];
+					
+					for (int x=0;x<fg.length();x++) {
+						fgLayers[x] = fg.getInt(x);
+						totalLayers++;
+					}
+					foregroundLayers = fgLayers;
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void Draw(Batch batch, float alpha) {
-		for (int key: players.keySet()) {
-        	players.get(key).draw(batch, alpha);
-        }
 		for (int key: actors.keySet()) {
         	actors.get(key).draw(batch, alpha);
         }
+		for (int key: players.keySet()) {
+			if (key == 0)
+				continue;
+        	players.get(key).draw(batch, alpha);
+        }
+		players.get(0).draw(batch, alpha);
 	}
 	
 	public void addPlayer(Player p) {
@@ -101,7 +139,7 @@ public class Instance {
 	
 	public boolean isCellBlocked(float x, float y) {
 		boolean blocked = false;
-		for (int i=0;i<3;i++) {
+		for (int i=0;i<totalLayers;i++) {
 			TiledMapTileLayer coll = (TiledMapTileLayer) collisionLayers.get(i);
 			Cell cell = coll.getCell((int) (x), (int) (y));
 			blocked = cell != null && cell.getTile() != null && cell.getTile().getProperties().containsKey("blocked");

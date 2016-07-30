@@ -59,7 +59,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		debugBatch = new SpriteBatch();
 		font = new BitmapFont();
 		
-		instance = new Instance("Maps/map.tmx");
+		instance = new Instance("map.tmx");
 		
 		player = new PlayerController(instance);
 		player.setPosition(new Vector2(10, 10));
@@ -92,15 +92,17 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		
 		camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
 		camera.update();
+		mapRenderer.setMap(player.instance.map);
 		mapRenderer.setView((OrthographicCamera) camera);
-		mapRenderer.render(backgroundLayers);
+		
+		mapRenderer.render(player.instance.backgroundLayers);
 		
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
-		instance.Draw(batch, 1f);
+		player.instance.Draw(batch, 1f);
 		batch.end();
 		
-		mapRenderer.render(foreground);
+		mapRenderer.render(player.instance.foregroundLayers);
 		
 		debugBatch.begin();
 		font.setColor(Color.WHITE);

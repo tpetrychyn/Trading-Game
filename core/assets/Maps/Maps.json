@@ -1,0 +1,16 @@
+{
+  "maps": [
+      {
+        "id": 1,
+        "file": "map.tmx",
+        "backgroundLayers": [0, 1],
+        "foregroundLayers": [2]
+      },
+      {
+        "id": 2,
+        "file": "house.tmx",
+        "backgroundLayers": [0],
+        "foregroundLayers": []
+      }
+  ]
+}

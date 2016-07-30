@@ -76,7 +76,7 @@ public class PlayerController extends Player implements InputProcessor {
         setY(getY() + playerVelocity.y * deltaTime);
         
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
-        		|| getWorldPosition().x > 99.8 || getWorldPosition().y > 100
+        		|| getWorldPosition().x > instance.worldWidth || getWorldPosition().y > instance.worldHeight
         		|| instance.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
         		|| instance.actorCollision(this)){
         	setY(oldPos.y);
@@ -109,25 +109,43 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionListener = new Listener() {
 		        public void received (Connection connection, final Object object) {
 		        	if (object instanceof NpcMovePacket) {
-		        		NpcMovePacket response = (NpcMovePacket)object;
-			        	   NpcMovePacket n = new NpcMovePacket();
-			        	   n.npcId = response.npcId;
-			        	   n.x = response.x;
-			        	   n.y = response.y;
-			        	   if (instance.getActors().get(n.npcId) == null) {
-			        		   Gdx.app.postRunnable(new Runnable() {
-			        		         @Override
-			        		         public void run() {
-			        		        	 NpcMovePacket response = (NpcMovePacket)object;
-			        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
-			        		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
-			        		        	 instance.getActors().put(response.npcId, newn);
-			        		         }
-			        		      });
-			        	   } else {
-			        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
-			        	   }
+	        		   NpcMovePacket response = (NpcMovePacket)object;
+		        	   NpcMovePacket n = new NpcMovePacket();
+		        	   n.npcId = response.npcId;
+		        	   n.x = response.x;
+		        	   n.y = response.y;
+		        	   if (instance.getActors().get(n.npcId) == null) {
+		        		   Gdx.app.postRunnable(new Runnable() {
+		        		         @Override
+		        		         public void run() {
+		        		        	 NpcMovePacket response = (NpcMovePacket)object;
+		        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
+		        		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
+		        		        	 instance.getActors().put(response.npcId, newn);
+		        		         }
+		        		      });
+		        	   } else {
+		        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
+		        	   }
 			        }
+		        	
+		        	if (object instanceof NpcMovePacket[]) {
+		        	   final NpcMovePacket[] response = (NpcMovePacket[])object;
+		        	   Gdx.app.postRunnable(new Runnable() {
+        		         @Override
+        		         public void run() {
+        		        	 for (int i=0;i<response.length;i++) {
+        		        		 NpcMovePacket n = response[i];
+        		        		 if (instance.getActors().get(n.npcId) == null) {
+        	        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
+        	        		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
+        	        		        	 instance.getActors().put(n.npcId, newn);
+        		        		 }
+        		        	 }
+        		         }
+        		      });
+		        	}
+		        	
 		        	if (object instanceof PlayerDataPacket) {
 			        	  PlayerDataPacket packet = (PlayerDataPacket)object;
 			        	  if (instance.getPlayers().get(packet.id) == null) {
@@ -162,12 +180,18 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionHandler.client.sendTCP(in);
 			instanceId = 1;
 			instance.getActors().clear();
+			instance = new Instance("map.tmx");
+			instance.addPlayer(this);
+			setWorldPosition(new Vector2(1,1));
 		}
 		if (keycode == Input.Keys.NUM_5) {
 			InstancePacket in = new InstancePacket(instanceId, "leave");
 			connectionHandler.client.sendTCP(in);
 			instanceId = 2;
 			instance.getActors().clear();
+			instance = new Instance("house.tmx");
+			instance.addPlayer(this);
+			setWorldPosition(new Vector2(10,1));
 		}
 		
 		if (keycode == Input.Keys.ESCAPE)
@@ -194,22 +218,18 @@ public class PlayerController extends Player implements InputProcessor {
 		// TODO Auto-generated method stub
 		
 		mousePos = Game.getCamera().unproject(new Vector3(screenX, screenY, 0));
-		try {
-			for(Iterator<Actor> i = this.getStage().getActors().iterator(); i.hasNext(); ) {
-			    Actor a = i.next();
-			    if (mousePos.x < a.getX() + a.getWidth() 
-						&& mousePos.x > a.getX() 
-						&& mousePos.y < a.getY() + a.getHeight() 
-						&& mousePos.y > a.getY()) {
-			    	if (distanceToPoint(new Vector2(a.getX(),a.getY())) < 30) {
-			    		System.out.println(((Npc) a).id);
-			    		((Npc) a).setColor(Color.WHITE);
-			    	}
-					return false;
-				}
+		for (int key: instance.getActors().keySet()) {
+			Actor a = instance.actors.get(key);
+			if (mousePos.x < a.getX() + a.getWidth() 
+			&& mousePos.x > a.getX() 
+			&& mousePos.y < a.getY() + a.getHeight() 
+			&& mousePos.y > a.getY()) {
+		    	if (distanceToPoint(new Vector2(a.getX(),a.getY())) < 30) {
+		    		System.out.println(((Npc) a).id);
+		    		((Npc) a).setColor(Color.WHITE);
+		    	}
+			return false;
 			}
-		} catch(Exception e) {
-			
 		}
 		return false;
 	}
