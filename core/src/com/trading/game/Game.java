@@ -51,7 +51,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	
 	public static String ip;
 	
-	public class MyTextInputListener implements TextInputListener {
+	/*public class MyTextInputListener implements TextInputListener {
 		   @Override
 		   public void input (String text) {
 			   ip = text;
@@ -60,13 +60,13 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		   @Override
 		   public void canceled () {
 		   }
-		}
+		}*/
 	
 	@Override
 	public void create () {
 		
-		MyTextInputListener listener = new MyTextInputListener();
-		Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
+		//MyTextInputListener listener = new MyTextInputListener();
+		//Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
 		
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();
@@ -76,7 +76,6 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		
 		player = new PlayerController(instance);
 		player.setPosition(new Vector2(10, 10));
-		
 		
 		instance.addPlayer(player);
 		

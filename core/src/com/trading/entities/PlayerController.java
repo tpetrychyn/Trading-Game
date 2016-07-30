@@ -35,7 +35,7 @@ public class PlayerController extends Player implements InputProcessor {
 	public PlayerController(Instance instance) {
 		super(instance);
         this.instance = instance;
-        connectionHandler = new ConnectionHandler();
+		connectionHandler = new ConnectionHandler();
 	}
 
 	@Override
@@ -141,10 +141,10 @@ public class PlayerController extends Player implements InputProcessor {
         		         public void run() {
         		        	 for (int i=0;i<response.length;i++) {
         		        		 NpcMovePacket n = response[i];
-        		        		 if (instance.getActors().get(n.npcId) == null) {
-        	        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
-        	        		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
-        	        		        	 instance.getActors().put(n.npcId, newn);
+        		        		 if (Game.player.instance.getActors().get(n.npcId) == null) {
+    	        		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
+    	        		        	 Game.player.instance.getActors().put(n.npcId, newn);
+    	        		        	 System.out.println(Game.player.instance.getActors().size());
         		        		 }
         		        	 }
         		         }
@@ -185,6 +185,7 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionHandler.client.sendTCP(in);
 			instanceId = 1;
 			instance.getActors().clear();
+			
 			instance = new Instance("map.tmx");
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(1,1));
@@ -194,6 +195,7 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionHandler.client.sendTCP(in);
 			instanceId = 2;
 			instance.getActors().clear();
+			
 			instance = new Instance("house.tmx");
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(10,1));
