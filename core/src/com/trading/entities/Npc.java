@@ -56,7 +56,7 @@ public class Npc extends WorldActor {
 		sprite = new Sprite(t);
 		
         realWidth = 17;
-        realHeight = 26;
+        realHeight = 24;
 		
 		walkAnimations = new Animation[8];
 		Animator a = new Animator(9, 4, "male_walk.png");

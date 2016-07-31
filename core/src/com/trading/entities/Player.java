@@ -86,10 +86,10 @@ public class Player extends WorldActor  {
         
         setScale(1f);
         
-        offsetX = 8;
-        offsetY = 12;
-        realWidth = 17;
-        realHeight = 26;
+        offsetX = 9;
+        offsetY = 14;
+        realWidth = 14;
+        realHeight = 22;
         
         setOrigin(getWidth()/2,getHeight()/2);
         
