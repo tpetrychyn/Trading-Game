@@ -13,7 +13,6 @@ import com.trading.game.Instance;
 
 public class Player extends WorldActor  {
 	
-	
     Instance instance;
     
     float playerSpeed = 200f;
@@ -24,6 +23,7 @@ public class Player extends WorldActor  {
     float stateTime = 0;
     BitmapFont font;
     public PlayerData playerData;
+    public float lastMoved = 0;
     
     public float getSpeed() {
     	return playerSpeed;
@@ -72,6 +72,8 @@ public class Player extends WorldActor  {
         
         setScale(0.5f);
         
+        setOrigin(getWidth()/2,getHeight()/2);
+        
 		walkAnimations = new Animation[8];
 		Animator a = new Animator(9, 4, "male_walk.png");
         walkAnimations[0] = a.addAnimation(1, 7);
@@ -98,6 +100,7 @@ public class Player extends WorldActor  {
 	@Override
 	public void draw(Batch batch, float alpha) {
 		stateTime += Gdx.graphics.getDeltaTime();
+		lastMoved += Gdx.graphics.getDeltaTime();
 		sprite = new Sprite(getCurrentTexture(stateTime));
 		
 		font.setColor(Color.BLUE);
@@ -105,6 +108,11 @@ public class Player extends WorldActor  {
 		font.draw(batch, playerData.pId + "", getX() + getWidth()/2 - getName().length()*7/2, getY()+getHeight() + 10);
 		font.draw(batch, "Health: " + playerData.health, getX() + getWidth()/2, getY()+getHeight() + 30);
 		font.draw(batch, "Stamina: " + playerData.stamina, getX() + getWidth()/2, getY()+getHeight() + 40);
+		
+		if (lastMoved < 0.1)
+			isMoving = true;
+		else
+			isMoving = false;
 		
 		super.draw(batch, alpha);
 	}

@@ -1,6 +1,7 @@
 package com.trading.networking.packets;
 
 import com.badlogic.gdx.math.Vector2;
+import com.trading.entities.Direction;
 import com.trading.entities.PlayerData;
 
 public class PlayerDataPacket {
@@ -13,9 +14,10 @@ public class PlayerDataPacket {
 		id = -1;
 	}
 	
-	public PlayerDataPacket(int id, int instance, Vector2 pos) {
+	public PlayerDataPacket(int id, int instance, Vector2 pos, Direction direction) {
 		this.id = id;
 		this.instance = instance;
 		playerData = new PlayerData(pos, id, 100, 100);
+		playerData.direction = direction;
 	}
 }

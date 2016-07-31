@@ -8,18 +8,25 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+import com.trading.entities.WorldObjects.TreePrefab;
 import com.trading.game.Game;
 import com.trading.game.Instance;
+import com.trading.game.Util;
 import com.trading.networking.ConnectionHandler;
+import com.trading.networking.ConnectionListener;
 import com.trading.networking.packets.InstancePacket;
 import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerDataPacket;
+import com.trading.networking.packets.WorldObjectPacket;
 
 public class PlayerController extends Player implements InputProcessor {
 	
@@ -36,6 +43,7 @@ public class PlayerController extends Player implements InputProcessor {
 		super(instance);
         this.instance = instance;
 		connectionHandler = new ConnectionHandler();
+		
 	}
 
 	@Override
@@ -84,9 +92,9 @@ public class PlayerController extends Player implements InputProcessor {
         }
         
         if (connectionHandler.client != null && connectionHandler.client.isConnected()) {
-        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, getPosition());
+        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, getPosition(), direction);
 			if (p.playerData.pos.x != oldPos.x || p.playerData.pos.y != oldPos.y)
-				connectionHandler.client.sendTCP(p);
+				connectionHandler.client.sendUDP(p);
         }
         
         super.draw(batch, deltaTime);
@@ -106,77 +114,7 @@ public class PlayerController extends Player implements InputProcessor {
 		if (keycode == Input.Keys.NUM_3) {
 			if (connectionHandler.client != null)
 				return false;
-			connectionListener = new Listener() {
-		        public void received (Connection connection, final Object object) {
-		        	if (object instanceof NpcMovePacket) {
-	        		   NpcMovePacket response = (NpcMovePacket)object;
-		        	   NpcMovePacket n = new NpcMovePacket();
-		        	   n.npcId = response.npcId;
-		        	   n.x = response.x;
-		        	   n.y = response.y;
-		        	   if (instance.getActors().get(n.npcId) == null) {
-		        		   Gdx.app.postRunnable(new Runnable() {
-		        		         @Override
-		        		         public void run() {
-		        		        	 NpcMovePacket response = (NpcMovePacket)object;
-		        		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
-		        		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
-		        		        	 newn.direction = response.direction;
-		        		        	 instance.getActors().put(response.npcId, newn);
-		        		         }
-		        		      });
-		        	   } else {
-		        		   ((Npc) instance.getActors().get(n.npcId)).direction = response.direction;
-		        		   ((Npc) instance.getActors().get(n.npcId)).isMoving = true;
-		        		   ((Npc) instance.getActors().get(n.npcId)).timeSinceMove = 0;
-		        		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
-		        		   
-		        	   }
-			        }
-		        	
-		        	if (object instanceof NpcMovePacket[]) {
-		        	   final NpcMovePacket[] response = (NpcMovePacket[])object;
-		        	   Gdx.app.postRunnable(new Runnable() {
-        		         @Override
-        		         public void run() {
-        		        	 for (int i=0;i<response.length;i++) {
-        		        		 NpcMovePacket n = response[i];
-        		        		 if (Game.player.instance.getActors().get(n.npcId) == null) {
-        		        			 System.out.println(n.x + " " + n.y);
-    	        		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
-    	        		        	 Game.player.instance.getActors().put(n.npcId, newn);
-        		        		 }
-        		        	 }
-        		         }
-        		      });
-		        	}
-		        	
-		        	if (object instanceof PlayerDataPacket) {
-			        	  PlayerDataPacket packet = (PlayerDataPacket)object;
-			        	  if (instance.getPlayers().get(packet.id) == null) {
-			        		   Gdx.app.postRunnable(new Runnable() {
-			        		         @Override
-			        		         public void run() {
-			        		        	 PlayerDataPacket packet = (PlayerDataPacket)object;
-			        		        	 Player p = new Player(instance);
-			        		        	 instance.getPlayers().put(packet.id, p);
-			        		         }
-			        		      });
-			        	   } else {
-			        		   instance.getPlayers().get(packet.id).setPosition(packet.playerData.pos);
-			        	   }
-			         }
-		        	
-		        	if (object instanceof InstancePacket) {
-			        	  InstancePacket packet = (InstancePacket)object;
-			        	  if (packet.action == "leave") {
-			        		  instance.getPlayers().remove(packet.clientId);
-			        	  }
-			         }
-		        }
-		        
-		     };
-			connectionHandler.connectToServer(connectionListener);
+			connectionHandler.connectToServer(new ConnectionListener());
 			
 		}
 		
@@ -190,7 +128,7 @@ public class PlayerController extends Player implements InputProcessor {
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(1,1));
 			
-			in = new InstancePacket(instanceId, "join");
+			in = new InstancePacket(instanceId, "join", getPosition());
 			connectionHandler.client.sendTCP(in);
 		}
 		if (keycode == Input.Keys.NUM_5) {
@@ -203,7 +141,7 @@ public class PlayerController extends Player implements InputProcessor {
 			instance.addPlayer(this);
 			setWorldPosition(new Vector2(10,1));
 			
-			in = new InstancePacket(instanceId, "join");
+			in = new InstancePacket(instanceId, "join", getPosition());
 			connectionHandler.client.sendTCP(in);
 		}
 		
@@ -241,7 +179,17 @@ public class PlayerController extends Player implements InputProcessor {
 		    		System.out.println(((Npc) a).id);
 		    		((Npc) a).setColor(Color.WHITE);
 		    	}
-			return false;
+			}
+		}
+		for (int key: instance.worldObjects.keySet()) {
+			WorldActor a = instance.worldObjects.get(key);
+			if (mousePos.x < a.getX() + a.getWidth() 
+			&& mousePos.x > a.getX() 
+			&& mousePos.y < a.getY() + a.getHeight() 
+			&& mousePos.y > a.getY()) {
+		    	if (distanceToPoint(new Vector2(a.getX() + a.getOriginX(),a.getY())) < 50) {
+		    		System.out.println(key);
+		    	}
 			}
 		}
 		return false;
@@ -282,7 +230,11 @@ public class PlayerController extends Player implements InputProcessor {
 	}
 	
 	float distanceToPoint(Vector2 pt) {
-		return (float) Math.sqrt((getX()-pt.x)*(getX()-pt.x) + (getY()-pt.y)*(getY()-pt.y));
+		return (float) Math.sqrt((getX()+getOriginX()-pt.x)*(getX()+getOriginX()-pt.x) + (getY()+getOriginY()-pt.y)*(getY()+getOriginY()-pt.y));
+	}
+	
+	float distanceToPoint(Vector2 pt, Vector2 other) {
+		return (float) Math.sqrt((other.x-pt.x)*(other.x-pt.x) + (other.y-pt.y)*(other.y-pt.y));
 	}
 
 }

@@ -8,6 +8,7 @@ public class PlayerData {
 	public int pId;
 	public int health;
 	public int stamina;
+	public Direction direction;
 	
 	public PlayerData() {
 		pos = new Vector2(0,0);

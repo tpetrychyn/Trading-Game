@@ -31,8 +31,8 @@ public class Util {
 	
 	public static Vector2 getTileCoordinates(Vector2 pt, float tileHeight) {
 		  Vector2 tempPt = new Vector2(0, 0);
-		  tempPt.x = pt.x / tileHeight / 2;
-		  tempPt.y = pt.y / tileHeight;
+		  tempPt.x = pt.x / tileHeight;
+		  tempPt.y = pt.y / tileHeight / 2;
 		  return(tempPt);
 	}
 }

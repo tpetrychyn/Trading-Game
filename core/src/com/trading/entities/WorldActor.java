@@ -1,12 +1,9 @@
 package com.trading.entities;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer.Task;
@@ -22,14 +19,17 @@ public class WorldActor extends Actor {
 	Task randomWalk;
 	Vector2 minBounds;
 	Vector2 maxBounds;
-	Direction direction = Direction.SOUTH;
+	public Direction direction = Direction.SOUTH;
 	public int id;
 	
+	public float realX;
+	public float realY;
+	public float realWidth;
+	public float realHeight;
 	
 	public boolean isMoving = false;
 	
 	public WorldActor() {
-		
 	}
 	
 	public WorldActor(Texture image, float x, float y, Instance instance, int id, float scale) {
@@ -65,5 +65,6 @@ public class WorldActor extends Actor {
 			return;
 			
 		batch.draw(sprite, getX(), getY(), getWidth(), getHeight());
+		
 	}
 }

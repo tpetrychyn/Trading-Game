@@ -75,7 +75,7 @@ public class Npc extends WorldActor {
     	return walkAnimations[direction.getValue()].getKeyFrame(st, true);
     }
 	
-	float timeSinceMove = 0;
+	public float timeSinceMove = 0;
 	@Override
 	public void draw(Batch batch, float alpha) {
 		stateTime += Gdx.graphics.getDeltaTime();

@@ -19,6 +19,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.trading.entities.PlayerController;
+import com.trading.entities.WorldObjects;
 
 public class Game extends ApplicationAdapter implements Screen, ApplicationListener {
 	
@@ -51,6 +52,8 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	
 	public static String ip;
 	
+	static WorldObjects objects;
+	
 	/*public class MyTextInputListener implements TextInputListener {
 		   @Override
 		   public void input (String text) {
@@ -67,7 +70,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		
 		//MyTextInputListener listener = new MyTextInputListener();
 		//Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
-		
+		objects = new WorldObjects();
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();
 		font = new BitmapFont();
@@ -112,7 +115,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		player.instance.Draw(batch, 1f);
-		batch.end();
+		//batch.end();
 		
 		mapRenderer.render(player.instance.foregroundLayers);
 		
