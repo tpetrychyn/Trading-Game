@@ -14,20 +14,18 @@ public class ConnectionHandler {
 	public void connectToServer(Listener connectionListener) {
 		client = new Client(20000, 20000);
 	    client.start();
+	    
+	    Network.register(client);
+	    client.addListener(connectionListener);
+	    
 	    try {
 			client.connect(5000, Game.ip, Network.PORT_TCP, Network.PORT_UDP);
-			
+			InstancePacket in = new InstancePacket(Game.player.instanceId, "join", Game.player.getPosition());
+			client.sendTCP(in);
+			System.out.println("Connected to server");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	    
-	    Network.register(client);
-	    System.out.println("Connected to server");
-	    
-	    client.addListener(connectionListener);
-	    
-	    InstancePacket in = new InstancePacket(Game.player.instanceId, "join", Game.player.getPosition());
-		client.sendTCP(in);
 	}
 }

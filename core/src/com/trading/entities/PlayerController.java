@@ -112,7 +112,7 @@ public class PlayerController extends Player implements InputProcessor {
 		}
 		
 		if (keycode == Input.Keys.NUM_3) {
-			if (connectionHandler.client != null)
+			if (connectionHandler.client != null && connectionHandler.client.isConnected())
 				return false;
 			connectionHandler.connectToServer(new ConnectionListener());
 			
