@@ -30,8 +30,9 @@ public class WorldObjects {
 		public int height;
 		public int offsetX;
 		public int offsetY;
+		public String color;
 		
-		public TreePrefab(int id, String file, String type, float scale, int width, int height, int offsetX, int offsetY) {
+		public TreePrefab(int id, String file, String type, float scale, int width, int height, int offsetX, int offsetY, String color) {
 			this.id = id;
 			this.file = file;
 			this.type = type;
@@ -40,6 +41,7 @@ public class WorldObjects {
 			this.height = height;
 			this.offsetX = offsetX;
 			this.offsetY = offsetY;
+			this.color = color;
 		}
 	}
 	

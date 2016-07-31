@@ -209,8 +209,6 @@ public class Instance {
  			Rectangle p = new Rectangle(self.realX, self.realY, self.realWidth, self.realHeight);
  			Rectangle n = new Rectangle(a.realX, a.realY, a.realWidth, a.realHeight);
  			if (Intersector.overlaps(p, n)) {
- 				System.out.println(self.realX + " " + self.realY + " " + self.realWidth + " " + self.realHeight);
- 				System.out.println(a.realX + "  " + a.realY + "  " + a.realWidth + "  " + a.realHeight);
  				return true;
  			}
         }

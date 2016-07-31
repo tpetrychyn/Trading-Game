@@ -8,7 +8,8 @@
       "width": 72,
       "height": 40,
       "offsetX": 106,
-      "offsetY": 4
+      "offsetY": 4,
+      "color": "red"
     },
     {
       "id": 1,
@@ -18,7 +19,8 @@
       "width": 72,
       "height": 40,
       "offsetX": 106,
-      "offsetY": 4
+      "offsetY": 4,
+      "color": "blue"
     }
   ]
 }

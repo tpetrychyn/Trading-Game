@@ -74,7 +74,7 @@ public class PlayerController extends Player implements InputProcessor {
 		realX = getX() + offsetX;
         realY = getY() + offsetY;
         
-        if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
+        if (getWorldPosition().x < 0.2 || getWorldPosition().y < -0.2
         		|| getWorldPosition().x > instance.worldWidth || getWorldPosition().y > instance.worldHeight
         		|| instance.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
         		|| instance.actorCollision(this)){
@@ -183,6 +183,7 @@ public class PlayerController extends Player implements InputProcessor {
 			&& mousePos.y > a.getY()) {
 		    	if (distanceToPoint(new Vector2(a.getX() + a.getOriginX(),a.getY())) < 50) {
 		    		System.out.println(key);
+		    		System.out.println(((Tree)instance.worldObjects.get(key)).type);
 		    	}
 			}
 		}
