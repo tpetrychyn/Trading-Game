@@ -38,17 +38,6 @@ public class WorldActor extends Actor {
 		sprite = new Sprite(image);
 		this.instance = instance;
 		instance.setWorldPosition(this, new Vector2(x,y));
-		walkAnimations = new Animation[8];
-		Animator a = new Animator(9, 4, "male_walk.png");
-        walkAnimations[0] = a.addAnimation(1, 7);
-        walkAnimations[1] = a.addAnimation(10, 7);
-        walkAnimations[2] = a.addAnimation(19, 7);
-        walkAnimations[3] = a.addAnimation(28, 7);
-
-        walkAnimations[4] = a.addAnimation(0, 1);
-        walkAnimations[5] = a.addAnimation(9, 1);
-        walkAnimations[6] = a.addAnimation(18, 1);
-        walkAnimations[7] = a.addAnimation(27, 1);
         
         setScale(scale);
 	}

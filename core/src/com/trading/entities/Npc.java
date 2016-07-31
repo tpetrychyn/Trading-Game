@@ -17,6 +17,9 @@ public class Npc extends WorldActor {
 	float stateTime;
 	BitmapFont font;
 	
+	public int offsetX;
+	public int offsetY;
+	
 	public Npc(Instance instance) {
 		this.instance = instance;
 		font = new BitmapFont();
@@ -52,6 +55,9 @@ public class Npc extends WorldActor {
 		Texture t = new Texture(Gdx.files.internal("male_idle.png"), true);
 		sprite = new Sprite(t);
 		
+        realWidth = 17;
+        realHeight = 26;
+		
 		walkAnimations = new Animation[8];
 		Animator a = new Animator(9, 4, "male_walk.png");
         walkAnimations[0] = a.addAnimation(1, 7);
@@ -78,6 +84,8 @@ public class Npc extends WorldActor {
 	public float timeSinceMove = 0;
 	@Override
 	public void draw(Batch batch, float alpha) {
+		realX = getX();
+        realY = getY();
 		stateTime += Gdx.graphics.getDeltaTime();
 		sprite = new Sprite(getCurrentTexture(stateTime));
 		

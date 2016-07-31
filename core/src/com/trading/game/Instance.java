@@ -9,7 +9,6 @@ import org.json.JSONObject;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
@@ -27,7 +26,6 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.trading.entities.Player;
 import com.trading.entities.Tree;
 import com.trading.entities.WorldActor;
-import com.trading.entities.WorldObjects;
 
 public class Instance {
 	
@@ -122,15 +120,19 @@ public class Instance {
 		for (int key: worldObjects.keySet()) {
         	worldObjects.get(key).draw(batch, alpha);
         }
+		
 		batch.end();
 		sr.begin(ShapeType.Line);
 		sr.setProjectionMatrix(Game.getCamera().combined);
 		sr.setColor(new Color(0,0,1,0));
 		for (int key: worldObjects.keySet()) {
 			Tree a = (Tree) worldObjects.get(key);
-			//sr.rect(a.realX, a.realY, a.realWidth, a.realHeight);
+			sr.rect(a.realX, a.realY, a.realWidth, a.realHeight);
         }
+		Player p = players.get(0);
+		sr.rect(p.realX , p.realY, p.realWidth, p.realHeight);
 		sr.end();
+		
 	}
 	
 	public void addPlayer(Player p) {
@@ -188,13 +190,13 @@ public class Instance {
     	return Util.twoDToIso(getTileCoordinates(pt, 32));
     }
 	
-    public boolean actorCollision(Actor self) {
+    public boolean actorCollision(WorldActor self) {
     	for (int key: actors.keySet()) {
-    		Actor a = actors.get(key);
+    		WorldActor a = (WorldActor) actors.get(key);
  		    if (a.hashCode() == self.hashCode())
  		    	continue;
- 			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
- 			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
+ 			Rectangle p = new Rectangle(self.realX, self.realY, self.realWidth, self.realHeight);
+ 			Rectangle n = new Rectangle(a.realX, a.realY, a.realWidth, a.realHeight);
  			if (Intersector.overlaps(p, n)) {
  				return true;
  			}
@@ -204,9 +206,11 @@ public class Instance {
     		WorldActor a = worldObjects.get(key);
  		    if (a.hashCode() == self.hashCode())
  		    	continue;
- 			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
+ 			Rectangle p = new Rectangle(self.realX, self.realY, self.realWidth, self.realHeight);
  			Rectangle n = new Rectangle(a.realX, a.realY, a.realWidth, a.realHeight);
  			if (Intersector.overlaps(p, n)) {
+ 				System.out.println(self.realX + " " + self.realY + " " + self.realWidth + " " + self.realHeight);
+ 				System.out.println(a.realX + "  " + a.realY + "  " + a.realWidth + "  " + a.realHeight);
  				return true;
  			}
         }

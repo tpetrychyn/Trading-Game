@@ -1,32 +1,20 @@
 package com.trading.entities;
 
-import java.util.Iterator;
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
-import com.trading.entities.WorldObjects.TreePrefab;
 import com.trading.game.Game;
 import com.trading.game.Instance;
-import com.trading.game.Util;
 import com.trading.networking.ConnectionHandler;
 import com.trading.networking.ConnectionListener;
 import com.trading.networking.packets.InstancePacket;
-import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerDataPacket;
-import com.trading.networking.packets.WorldObjectPacket;
 
 public class PlayerController extends Player implements InputProcessor {
 	
@@ -83,6 +71,9 @@ public class PlayerController extends Player implements InputProcessor {
         setX(getX() + playerVelocity.x * deltaTime);
         setY(getY() + playerVelocity.y * deltaTime);
         
+		realX = getX() + offsetX;
+        realY = getY() + offsetY;
+        
         if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > instance.worldWidth || getWorldPosition().y > instance.worldHeight
         		|| instance.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
@@ -91,8 +82,11 @@ public class PlayerController extends Player implements InputProcessor {
         	setX(oldPos.x);
         }
         
+        realX = getX() + offsetX;
+        realY = getY() + offsetY;
+        
         if (connectionHandler.client != null && connectionHandler.client.isConnected()) {
-        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, getPosition(), direction);
+        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, new Vector2(realX, realY), direction);
 			if (p.playerData.pos.x != oldPos.x || p.playerData.pos.y != oldPos.y)
 				connectionHandler.client.sendUDP(p);
         }
