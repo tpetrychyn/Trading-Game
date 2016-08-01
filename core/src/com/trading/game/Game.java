@@ -102,7 +102,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		// set viewport
         //Gdx.gl.glViewport((int) viewport.x, (int) viewport.y,
-       //                   (int) viewport.width, (int) viewport.height);
+        //                 (int) viewport.width, (int) viewport.height);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
 		camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
@@ -113,9 +113,9 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		mapRenderer.render(player.instance.backgroundLayers);
 		
 		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
+		
+		//function starts and ends the batch
 		player.instance.Draw(batch, 1f);
-		//batch.end();
 		
 		mapRenderer.render(player.instance.foregroundLayers);
 		
@@ -125,6 +125,7 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		font.draw(debugBatch, "World X: " + (int) playerPos.x + " World Y: " + (int) playerPos.y, 50, 50);
 		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
 		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
+		
 		/*if (chatbox.showTextEnter) {
 			chatbox.field.draw(debugBatch, 1f);
 		}

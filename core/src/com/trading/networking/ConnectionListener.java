@@ -40,7 +40,7 @@ public class ConnectionListener extends Listener {
     	   } else {
     		   ((Npc) instance.getActors().get(n.npcId)).direction = response.direction;
     		   ((Npc) instance.getActors().get(n.npcId)).isMoving = true;
-    		   ((Npc) instance.getActors().get(n.npcId)).timeSinceMove = 0;
+    		   ((Npc) instance.getActors().get(n.npcId)).lastMoved = 0;
     		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
     		   
     	   }

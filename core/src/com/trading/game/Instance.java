@@ -23,6 +23,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.trading.entities.Character;
+import com.trading.entities.Direction;
+import com.trading.entities.Equipment;
 import com.trading.entities.Player;
 import com.trading.entities.Tree;
 import com.trading.entities.WorldActor;
@@ -104,6 +107,7 @@ public class Instance {
 	}
 	
 	public void Draw(Batch batch, float alpha) {
+		batch.begin();
 		
 		for (int key: actors.keySet()) {
         	actors.get(key).draw(batch, alpha);
@@ -122,6 +126,7 @@ public class Instance {
         }
 		
 		batch.end();
+		
 		sr.begin(ShapeType.Line);
 		sr.setProjectionMatrix(Game.getCamera().combined);
 		sr.setColor(new Color(0,0,1,0));
@@ -130,7 +135,7 @@ public class Instance {
 			sr.rect(a.realX, a.realY, a.realWidth, a.realHeight);
         }
 		Player p = players.get(0);
-		sr.rect(p.realX , p.realY, p.realWidth, p.realHeight);
+		sr.rect(p.getX() , p.getY(), p.getWidth(), p.getHeight());
 		sr.end();
 		
 	}
@@ -195,8 +200,8 @@ public class Instance {
     		WorldActor a = (WorldActor) actors.get(key);
  		    if (a.hashCode() == self.hashCode())
  		    	continue;
- 			Rectangle p = new Rectangle(self.realX, self.realY, self.realWidth, self.realHeight);
- 			Rectangle n = new Rectangle(a.realX, a.realY, a.realWidth, a.realHeight);
+ 			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
+ 			Rectangle n = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());
  			if (Intersector.overlaps(p, n)) {
  				return true;
  			}
@@ -206,7 +211,7 @@ public class Instance {
     		WorldActor a = worldObjects.get(key);
  		    if (a.hashCode() == self.hashCode())
  		    	continue;
- 			Rectangle p = new Rectangle(self.realX, self.realY, self.realWidth, self.realHeight);
+ 			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
  			Rectangle n = new Rectangle(a.realX, a.realY, a.realWidth, a.realHeight);
  			if (Intersector.overlaps(p, n)) {
  				return true;
@@ -215,5 +220,39 @@ public class Instance {
 		return false;
 	}
     
+    public WorldActor findInFront(Player self) {
+		for (int key: actors.keySet()) {
+			WorldActor a = (WorldActor) actors.get(key);
+		   Rectangle r1  = null;
+		   Direction d = self.direction;
+		   if (d== Direction.NORTH)
+			   r1 = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight() + 10);  
+		   if (d== Direction.SOUTH)
+			   r1 = new Rectangle(self.getX(), self.getY() - 10, self.getWidth(), self.getHeight());  
+		   if (d== Direction.EAST)
+			   r1 = new Rectangle(self.getX(), self.getY(), self.getWidth() + 10, self.getHeight());  
+		   if (d== Direction.WEST)
+			   r1 = new Rectangle(self.getX() - 10, self.getY(), self.getWidth(), self.getHeight());  
+			Rectangle r2 = new Rectangle(a.getX(), a.getY(), a.getWidth(), a.getHeight());     
+			if (Intersector.overlaps(r1, r2)) {
+				Rectangle intersection = new Rectangle();                  
+				Intersector.intersectRectangles(r1, r2, intersection);   
+				
+				if(intersection.x > r1.x)                                  
+				    //Intersects with right side                     
+					return a;
+				else if(intersection.y > r1.y)                                  
+				    //Intersects with top side   
+					return a;
+				else if(intersection.x + intersection.width < r1.x + r1.width)  
+				    //Intersects with left side  
+					return a;
+				else if(intersection.y + intersection.height < r1.y + r1.height)
+				    //Intersects with bottom side  
+		 				return a;
+			}
+	    }
+		return null;
+	}
     
 }

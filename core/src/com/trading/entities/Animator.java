@@ -17,6 +17,10 @@ public class Animator {
    // TextureRegion                   currentFrame;           // #7
     
     public Animation addAnimation(int start, int frames) {
+    	return addAnimation(start, frames, 0.1f);
+    }
+    
+    public Animation addAnimation(int start, int frames, float speed) {
     	Animation newAnim;
     	TextureRegion[] tr = new TextureRegion[frames];
     	
@@ -25,13 +29,13 @@ public class Animator {
     		tr[n] = animFrames[i];
     		n++;
     	}
-    	newAnim = new Animation(0.060f, tr);
+    	newAnim = new Animation(speed, tr);
     	return newAnim;
     }
     
     public Animator(int columns, int rows, String filename) {
-    	animSheet = new Texture(Gdx.files.internal(filename)); // #9
-        TextureRegion[][] tmp = TextureRegion.split(animSheet, animSheet.getWidth()/columns, animSheet.getHeight()/rows);              // #10
+    	animSheet = new Texture(Gdx.files.internal(filename)); 
+        TextureRegion[][] tmp = TextureRegion.split(animSheet, animSheet.getWidth()/columns, animSheet.getHeight()/rows);
         animFrames = new TextureRegion[columns * rows];
         int index = 0;
         for (int i = 0; i < rows; i++) {

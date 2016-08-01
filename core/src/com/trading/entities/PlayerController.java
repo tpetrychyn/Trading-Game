@@ -31,7 +31,6 @@ public class PlayerController extends Player implements InputProcessor {
 		super(instance);
         this.instance = instance;
 		connectionHandler = new ConnectionHandler();
-		
 	}
 
 	@Override
@@ -71,10 +70,7 @@ public class PlayerController extends Player implements InputProcessor {
         setX(getX() + playerVelocity.x * deltaTime);
         setY(getY() + playerVelocity.y * deltaTime);
         
-		realX = getX() + offsetX;
-        realY = getY() + offsetY;
-        
-        if (getWorldPosition().x < 0.2 || getWorldPosition().y < -0.2
+        if (getWorldPosition().x < 0 || getWorldPosition().y < 0.2
         		|| getWorldPosition().x > instance.worldWidth || getWorldPosition().y > instance.worldHeight
         		|| instance.isCellBlocked(getWorldPosition().x, getWorldPosition().y)
         		|| instance.actorCollision(this)){
@@ -82,11 +78,8 @@ public class PlayerController extends Player implements InputProcessor {
         	setX(oldPos.x);
         }
         
-        realX = getX() + offsetX;
-        realY = getY() + offsetY;
-        
         if (connectionHandler.client != null && connectionHandler.client.isConnected()) {
-        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, new Vector2(realX, realY), direction);
+        	PlayerDataPacket p = new PlayerDataPacket(connectionHandler.client.getID(), instanceId, getPosition(), direction);
 			if (p.playerData.pos.x != oldPos.x || p.playerData.pos.y != oldPos.y)
 				connectionHandler.client.sendUDP(p);
         }
@@ -139,6 +132,13 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionHandler.client.sendTCP(in);
 		}
 		
+		if (keycode == Input.Keys.NUM_6) {
+			if (!sword.equipped)
+				equipWeapon("");
+			else
+				sword.equipped = false;
+		}
+		
 		if (keycode == Input.Keys.ESCAPE)
 			Gdx.app.exit();
 		
@@ -161,6 +161,16 @@ public class PlayerController extends Player implements InputProcessor {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		// TODO Auto-generated method stub
+		if (attackTime <= 0) {
+			attackTime = 0.3f;
+			stateTime = 0;
+			WorldActor hit = instance.findInFront(this);
+			if (hit != null) {
+				hit.color = Color.FIREBRICK;
+				((Npc) hit).npcData.health -= 5;
+				hit.colorTime = 0.3f;
+			}
+		}
 		
 		mousePos = Game.getCamera().unproject(new Vector3(screenX, screenY, 0));
 		for (int key: instance.getActors().keySet()) {

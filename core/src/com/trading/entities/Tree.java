@@ -10,13 +10,8 @@ import com.trading.game.Instance;
 public class Tree extends WorldActor {
 	
 	public Instance instance;
-
-	public Tree() {
-		
-	}
-	
 	public String type;
-	
+
 	public Tree(float x, float y, Instance instance, TreePrefab prefab) {
 		Texture t = new Texture("Objects/"+prefab.file);
 		sprite = new Sprite(t);

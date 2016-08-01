@@ -1,9 +1,12 @@
 package com.trading.entities;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.utils.Timer.Task;
@@ -13,21 +16,16 @@ public class WorldActor extends Actor {
 
 	Sprite sprite;
 	Instance instance;
-	Vector2 velocity = new Vector2();
-	Animation[] walkAnimations;
-	Animation walk;
-	Task randomWalk;
-	Vector2 minBounds;
-	Vector2 maxBounds;
-	public Direction direction = Direction.SOUTH;
-	public int id;
+	public Color color = Color.WHITE;
+	public float colorTime = 0;
 	
+	public int id;
 	public float realX;
 	public float realY;
 	public float realWidth;
 	public float realHeight;
-	
-	public boolean isMoving = false;
+	public float offsetX;
+	public float offsetY;
 	
 	public WorldActor() {
 	}
@@ -45,15 +43,25 @@ public class WorldActor extends Actor {
 	public void setScale(float scale) {
 		setWidth(sprite.getWidth() * scale);
 		setHeight(sprite.getHeight() * scale);
+		sprite.scale(scale);
+		sprite.setScale(scale, scale);
 	}
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
 		//spawn actors off screen to save memory?
-		if (getX() < 0 && getY() < 0)
+		if (getX() < 0 && getY() < 0) {
 			return;
-			
-		batch.draw(sprite, getX(), getY(), getWidth(), getHeight());
+		}
 		
+		if (colorTime > 0) {
+			sprite.setColor(color);
+			colorTime -= Gdx.graphics.getDeltaTime();
+		}
+		
+		sprite.setScale(0.5f);
+		sprite.setPosition(getX()-offsetX, getY()-offsetY);
+		sprite.draw(batch);
+		//batch.draw(sprite, getX(), getY(), getWidth(), getHeight());
 	}
 }

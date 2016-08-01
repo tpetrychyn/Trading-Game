@@ -1,0 +1,10 @@
+{
+  "weapons": [
+    {
+      "id": 1,
+      "name": "Steel sword",
+      "file": "sword_walk.png",
+      "attack": 20
+    }
+  ]
+}
