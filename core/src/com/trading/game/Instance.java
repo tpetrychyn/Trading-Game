@@ -39,7 +39,7 @@ public class Instance {
 	public int worldWidth;
 	public int worldHeight;
 	public MapLayers collisionLayers;
-	public HashMap<Integer, Actor> actors = new HashMap<Integer, Actor>();
+	public HashMap<Integer, Character> npcs = new HashMap<Integer, Character>();
 	public HashMap<Integer, Player> players = new HashMap<Integer, Player>();
 	public HashMap<Integer, WorldActor> worldObjects = new HashMap<Integer, WorldActor>();
 	public int[] backgroundLayers, foregroundLayers;
@@ -109,8 +109,8 @@ public class Instance {
 	public void Draw(Batch batch, float alpha) {
 		batch.begin();
 		
-		for (int key: actors.keySet()) {
-        	actors.get(key).draw(batch, alpha);
+		for (int key: npcs.keySet()) {
+        	npcs.get(key).draw(batch, alpha);
         }
 		
 		for (int key: players.keySet()) {
@@ -148,8 +148,8 @@ public class Instance {
 		return players;
 	}
 	
-	public HashMap<Integer, Actor> getActors() {
-		return actors;
+	public HashMap<Integer, Character> getNpcs() {
+		return npcs;
 	}
 	
 	public World getWorld() {
@@ -196,8 +196,8 @@ public class Instance {
     }
 	
     public boolean actorCollision(WorldActor self) {
-    	for (int key: actors.keySet()) {
-    		WorldActor a = (WorldActor) actors.get(key);
+    	for (int key: npcs.keySet()) {
+    		Character a = (Character) npcs.get(key);
  		    if (a.hashCode() == self.hashCode())
  		    	continue;
  			Rectangle p = new Rectangle(self.getX(), self.getY(), self.getWidth(), self.getHeight());
@@ -220,9 +220,9 @@ public class Instance {
 		return false;
 	}
     
-    public WorldActor findInFront(Player self) {
-		for (int key: actors.keySet()) {
-			WorldActor a = (WorldActor) actors.get(key);
+    public Character findInFront(Player self) {
+		for (int key: npcs.keySet()) {
+			Character a = (Character) npcs.get(key);
 		   Rectangle r1  = null;
 		   Direction d = self.direction;
 		   if (d== Direction.NORTH)
@@ -249,7 +249,7 @@ public class Instance {
 					return a;
 				else if(intersection.y + intersection.height < r1.y + r1.height)
 				    //Intersects with bottom side  
-		 				return a;
+		 			return a;
 			}
 	    }
 		return null;

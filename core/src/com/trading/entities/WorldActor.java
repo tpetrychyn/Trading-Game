@@ -55,7 +55,8 @@ public class WorldActor extends Actor {
 		}
 		
 		if (colorTime > 0) {
-			sprite.setColor(color);
+			sprite.setColor(sprite.getColor().mul(color));
+			//sprite.setColor(color);
 			colorTime -= Gdx.graphics.getDeltaTime();
 		}
 		

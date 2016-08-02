@@ -9,7 +9,7 @@ import com.trading.game.Instance;
 
 public class Npc extends Character {
 	
-	public NpcData npcData;
+	public CharacterStats npcData;
 	
 	public Npc(Instance instance) {
 		this.instance = instance;
@@ -22,29 +22,14 @@ public class Npc extends Character {
 		this.instance = instance;
 		setPosition(x, y);
 		
-		npcData = new NpcData(100, 100);
+		npcData = new CharacterStats(100, 100);
 		
         setName(name);
+        font.setColor(Color.WHITE);
 	}
 	
 	@Override
 	public void draw(Batch batch, float alpha) {
-		stateTime += Gdx.graphics.getDeltaTime();
-		lastMoved += Gdx.graphics.getDeltaTime();
-		sprite = new Sprite(getCurrentTexture(stateTime));
-		
-		
-		font.setColor(Color.WHITE);
-		font.getData().setScale(0.5f);
-		font.draw(batch, getName(), getX() + getWidth()/2 - getName().length()*3/2, getY()+getHeight() + 30);
-		font.draw(batch, "Health: " + npcData.health, getX() + getWidth()/2 - 20, getY()+getHeight() + 20);
-		font.draw(batch, "Stamina: " + npcData.stamina, getX() + getWidth()/2 - 20, getY()+getHeight()+10);
-		
 		super.draw(batch, alpha);
-		
-		if (lastMoved < 0.1)
-			isMoving = true;
-		else
-			isMoving = false;
 	}
 }

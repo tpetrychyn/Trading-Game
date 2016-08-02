@@ -23,36 +23,34 @@ import com.trading.entities.WorldObjects;
 
 public class Game extends ApplicationAdapter implements Screen, ApplicationListener {
 	
-	public static boolean debug = false;
+	public enum GameState {
+		Loading(0), Playing(1), Menu(2);
+		
+		private final int value;
+		private GameState(int value) {
+			this.value = value;
+		}
+		
+		public int getValue() {
+			return value;
+		}
+	}
 	
-	private static final int VIRTUAL_WIDTH = 1920;
-    private static final int VIRTUAL_HEIGHT = 1080;
-    private static final float ASPECT_RATIO = (float)VIRTUAL_WIDTH/(float)VIRTUAL_HEIGHT;
-
-    private Rectangle viewport;
-    Viewport view;
+	public static boolean debug = false;
 	
 	Batch batch;
 	SpriteBatch debugBatch;
 	
 	public static ChatBox chatbox;
-	
 	BitmapFont font;
-	
     public static PlayerController player;
-    
     public static OrthographicCamera camera;
-    
-    public static Stage stage;
-    
     TiledMap map;
 	IsometricTiledMapRenderer mapRenderer;
-	
 	Instance instance;
-	
 	public static String ip;
 	
-	static WorldObjects objects;
+	public static GameState state;
 	
 	/*public class MyTextInputListener implements TextInputListener {
 		   @Override
@@ -70,7 +68,6 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 		
 		//MyTextInputListener listener = new MyTextInputListener();
 		//Gdx.input.getTextInput(listener, "Enter ip", "71.17.226.9", "");
-		objects = new WorldObjects();
 		batch = new SpriteBatch();
 		debugBatch = new SpriteBatch();
 		font = new BitmapFont();
@@ -89,7 +86,12 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
         camera.update();
         map = new TmxMapLoader().load("Maps/map.tmx");
 		mapRenderer = new IsometricTiledMapRenderer(map);
-        
+		
+		state = GameState.Playing;
+		
+		//load the world objects
+		WorldObjects w = new WorldObjects();
+		
         Gdx.input.setInputProcessor(player);
 	}
 	
@@ -100,41 +102,59 @@ public class Game extends ApplicationAdapter implements Screen, ApplicationListe
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(0, 0, 0, 1);
-		// set viewport
-        //Gdx.gl.glViewport((int) viewport.x, (int) viewport.y,
-        //                 (int) viewport.width, (int) viewport.height);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		
-		camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
-		camera.update();
-		mapRenderer.setMap(player.instance.map);
-		mapRenderer.setView((OrthographicCamera) camera);
+		if (state == GameState.Playing) {
+			
+			camera.position.set(player.getPosition().x + player.getWidth() / 2, player.getPosition().y, 0);
+			camera.update();
+			mapRenderer.setMap(player.instance.map);
+			mapRenderer.setView((OrthographicCamera) camera);
+			
+			mapRenderer.render(player.instance.backgroundLayers);
+			
+			batch.setProjectionMatrix(camera.combined);
+			
+			//function starts and ends the batch
+			player.instance.Draw(batch, 1f);
+			
+			mapRenderer.render(player.instance.foregroundLayers);
+			
+			debugBatch.begin();
+			font.setColor(Color.WHITE);
+			Vector2 playerPos = player.getWorldPosition();
+			font.draw(debugBatch, "World X: " + (int) playerPos.x + " World Y: " + (int) playerPos.y, 50, 50);
+			font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
+			font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
+			
+			/*if (chatbox.showTextEnter) {
+				chatbox.field.draw(debugBatch, 1f);
+			}
+			if (chatbox.shouldFade && chatbox.fade > 0)
+				chatbox.fade -= Gdx.graphics.getDeltaTime();
+			chatbox.textArea.draw(debugBatch, chatbox.fade/10);*/
+			
+			debugBatch.end();
 		
-		mapRenderer.render(player.instance.backgroundLayers);
-		
-		batch.setProjectionMatrix(camera.combined);
-		
-		//function starts and ends the batch
-		player.instance.Draw(batch, 1f);
-		
-		mapRenderer.render(player.instance.foregroundLayers);
-		
-		debugBatch.begin();
-		font.setColor(Color.WHITE);
-		Vector2 playerPos = player.getWorldPosition();
-		font.draw(debugBatch, "World X: " + (int) playerPos.x + " World Y: " + (int) playerPos.y, 50, 50);
-		font.draw(debugBatch, "X: " + player.getX() + " Y: " + player.getY(), 50, 35);
-		font.draw(debugBatch, player.getMousePosition().toString(), 50, 20);
-		
-		/*if (chatbox.showTextEnter) {
-			chatbox.field.draw(debugBatch, 1f);
 		}
-		if (chatbox.shouldFade && chatbox.fade > 0)
-			chatbox.fade -= Gdx.graphics.getDeltaTime();
-		chatbox.textArea.draw(debugBatch, chatbox.fade/10);*/
 		
-		debugBatch.end();
+		if (state == GameState.Loading) {
+			debugBatch.begin();
+			font.setColor(Color.WHITE);
+			if (stateTime <= 0.5f) {
+				font.draw(debugBatch, "Loading.", 50, 50);
+			} else if (stateTime <= 1.5f) {
+				font.draw(debugBatch, "Loading..", 50, 50);
+			} else if (stateTime <= 2.5f) {
+				font.draw(debugBatch, "Loading...", 50, 50);
+			} else if (stateTime <= 3)
+				stateTime = 0;
+			stateTime += Gdx.graphics.getDeltaTime();
+			debugBatch.end();
+		}
 	}
+	
+	float stateTime = 0;
 	
 	public static PlayerController getPlayer() {
 		return player;

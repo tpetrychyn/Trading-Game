@@ -11,6 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.esotericsoftware.kryonet.Listener;
 import com.trading.game.Game;
 import com.trading.game.Instance;
+import com.trading.game.Util;
+import com.trading.game.Game.GameState;
 import com.trading.networking.ConnectionHandler;
 import com.trading.networking.ConnectionListener;
 import com.trading.networking.packets.InstancePacket;
@@ -106,10 +108,11 @@ public class PlayerController extends Player implements InputProcessor {
 		}
 		
 		if (keycode == Input.Keys.NUM_4) {
+			Game.state = GameState.Loading;
 			InstancePacket in = new InstancePacket(instanceId, "leave");
 			connectionHandler.client.sendTCP(in);
 			instanceId = 1;
-			instance.getActors().clear();
+			instance.getNpcs().clear();
 			
 			instance = new Instance("map.tmx");
 			instance.addPlayer(this);
@@ -119,10 +122,11 @@ public class PlayerController extends Player implements InputProcessor {
 			connectionHandler.client.sendTCP(in);
 		}
 		if (keycode == Input.Keys.NUM_5) {
+			Game.state = GameState.Loading;
 			InstancePacket in = new InstancePacket(instanceId, "leave");
 			connectionHandler.client.sendTCP(in);
 			instanceId = 2;
-			instance.getActors().clear();
+			instance.getNpcs().clear();
 			
 			instance = new Instance("house.tmx");
 			instance.addPlayer(this);
@@ -164,17 +168,18 @@ public class PlayerController extends Player implements InputProcessor {
 		if (attackTime <= 0) {
 			attackTime = 0.3f;
 			stateTime = 0;
-			WorldActor hit = instance.findInFront(this);
+			Character hit = instance.findInFront(this);
 			if (hit != null) {
-				hit.color = Color.FIREBRICK;
-				((Npc) hit).npcData.health -= 5;
+				Color c = new Color(1f, 0.7f, 0.7f, 1f);
+				hit.color = c;
 				hit.colorTime = 0.3f;
+				hit.takeDamage(Util.randomRange(120, 350));
 			}
 		}
 		
 		mousePos = Game.getCamera().unproject(new Vector3(screenX, screenY, 0));
-		for (int key: instance.getActors().keySet()) {
-			Actor a = instance.actors.get(key);
+		for (int key: instance.getNpcs().keySet()) {
+			Actor a = instance.getNpcs().get(key);
 			if (mousePos.x < a.getX() + a.getWidth() 
 			&& mousePos.x > a.getX() 
 			&& mousePos.y < a.getY() + a.getHeight() 

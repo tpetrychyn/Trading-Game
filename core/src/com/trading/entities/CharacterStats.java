@@ -1,15 +1,15 @@
 package com.trading.entities;
 
-public class NpcData {
+public class CharacterStats {
 	public int health;
 	public int stamina;
 	
-	public NpcData() {
+	public CharacterStats() {
 		health = 100;
 		stamina = 100;
 	}
 	
-	public NpcData(int health, int stamina) {
+	public CharacterStats(int health, int stamina) {
 		this.health = health;
 		this.stamina = stamina;
 	}

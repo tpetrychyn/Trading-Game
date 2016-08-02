@@ -65,9 +65,10 @@ public class Player extends Character  {
         
         setName("Taylor");
         playerData = new PlayerData();
+        font.setColor(Color.BLUE);
 	}
 	
-	@Override
+	/*@Override
 	public void draw(Batch batch, float alpha) {
 		stateTime += Gdx.graphics.getDeltaTime();
 		lastMoved += Gdx.graphics.getDeltaTime();
@@ -102,5 +103,5 @@ public class Player extends Character  {
             sword.setScale(0.5f);
             sword.draw(batch);
     	}
-    }
+    }*/
 }

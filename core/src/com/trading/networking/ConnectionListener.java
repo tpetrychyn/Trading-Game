@@ -10,6 +10,8 @@ import com.trading.entities.Tree;
 import com.trading.entities.WorldObjects;
 import com.trading.game.Game;
 import com.trading.game.Instance;
+import com.trading.game.Game.GameState;
+import com.trading.networking.packets.DoneLoading;
 import com.trading.networking.packets.InstancePacket;
 import com.trading.networking.packets.NpcMovePacket;
 import com.trading.networking.packets.PlayerDataPacket;
@@ -26,7 +28,7 @@ public class ConnectionListener extends Listener {
     	   n.npcId = response.npcId;
     	   n.x = response.x;
     	   n.y = response.y;
-    	   if (instance.getActors().get(n.npcId) == null) {
+    	   if (instance.getNpcs().get(n.npcId) == null) {
     		   Gdx.app.postRunnable(new Runnable() {
     		         @Override
     		         public void run() {
@@ -34,14 +36,14 @@ public class ConnectionListener extends Listener {
     		            // process the result, e.g. add it to an Array<Result> field of the ApplicationListener.
     		        	 Npc newn = new Npc(new Texture("male_walk.png"), response.x, response.y, instance, response.npcId, 0.5f, response.name);
     		        	 newn.direction = response.direction;
-    		        	 instance.getActors().put(response.npcId, newn);
+    		        	 instance.getNpcs().put(response.npcId, newn);
     		         }
     		      });
     	   } else {
-    		   ((Npc) instance.getActors().get(n.npcId)).direction = response.direction;
-    		   ((Npc) instance.getActors().get(n.npcId)).isMoving = true;
-    		   ((Npc) instance.getActors().get(n.npcId)).lastMoved = 0;
-    		   instance.getActors().get(n.npcId).setPosition(n.x, n.y);
+    		   ((Npc) instance.getNpcs().get(n.npcId)).direction = response.direction;
+    		   ((Npc) instance.getNpcs().get(n.npcId)).isMoving = true;
+    		   ((Npc) instance.getNpcs().get(n.npcId)).lastMoved = 0;
+    		   instance.getNpcs().get(n.npcId).setPosition(n.x, n.y);
     		   
     	   }
         }
@@ -53,9 +55,9 @@ public class ConnectionListener extends Listener {
 	         public void run() {
 	        	 for (int i=0;i<response.length;i++) {
 	        		 NpcMovePacket n = response[i];
-	        		 if (Game.player.instance.getActors().get(n.npcId) == null) {
+	        		 if (Game.player.instance.getNpcs().get(n.npcId) == null) {
     		        	 Npc newn = new Npc(new Texture("male_walk.png"), n.x, n.y, instance, n.npcId, 0.5f, n.name);
-    		        	 Game.player.instance.getActors().put(n.npcId, newn);
+    		        	 Game.player.instance.getNpcs().put(n.npcId, newn);
 	        		 }
 	        	 }
 	         }
@@ -123,7 +125,10 @@ public class ConnectionListener extends Listener {
 		        	 }
 		         }
 		    });
-    	}
+		}
     	
-    }
+    	if (object instanceof DoneLoading) {
+    		Game.state = GameState.Playing;
+    	}
+	}
 }
